@@ -1,0 +1,7 @@
+1. Avoide \n instead use \t (escape charactors) -> timespent and no. of syscalls 
+
+2. Avoide fflush
+
+3. loops or nested loops
+
+4. comparision of loops

@@ -1,0 +1,25 @@
+2073  22:09:09.427398 execve("./a.out", ["./a.out"], [/* 42 vars */]) = 0 <0.000415>
+2073  22:09:09.428442 brk(0)            = 0x910c000 <0.000054>
+2073  22:09:09.428674 access("/etc/ld.so.nohwcap", F_OK) = -1 ENOENT (No such file or directory) <0.000058>
+2073  22:09:09.428895 mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb77c0000 <0.000053>
+2073  22:09:09.429109 access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory) <0.000051>
+2073  22:09:09.429298 open("/etc/ld.so.cache", O_RDONLY) = 3 <0.000056>
+2073  22:09:09.429469 fstat64(3, {st_mode=S_IFREG|0644, st_size=89345, ...}) = 0 <0.000048>
+2073  22:09:09.429695 mmap2(NULL, 89345, PROT_READ, MAP_PRIVATE, 3, 0) = 0xb77aa000 <0.000050>
+2073  22:09:09.429848 close(3)          = 0 <0.000045>
+2073  22:09:09.430006 access("/etc/ld.so.nohwcap", F_OK) = -1 ENOENT (No such file or directory) <0.000070>
+2073  22:09:09.430260 open("/lib/i386-linux-gnu/libc.so.6", O_RDONLY) = 3 <0.000236>
+2073  22:09:09.430658 read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0p\222\1\0004\0\0\0"..., 512) = 512 <0.000040>
+2073  22:09:09.430856 fstat64(3, {st_mode=S_IFREG|0755, st_size=1544392, ...}) = 0 <0.000030>
+2073  22:09:09.431053 mmap2(NULL, 1554968, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xb4f000 <0.000035>
+2073  22:09:09.431182 mmap2(0xcc5000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x176) = 0xcc5000 <0.000041>
+2073  22:09:09.431325 mmap2(0xcc8000, 10776, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xcc8000 <0.000035>
+2073  22:09:09.431457 close(3)          = 0 <0.000026>
+2073  22:09:09.431588 mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb77a9000 <0.000029>
+2073  22:09:09.431711 set_thread_area({entry_number:-1 -> 6, base_addr:0xb77a98d0, limit:1048575, seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1}) = 0 <0.000026>
+2073  22:09:09.431957 mprotect(0xcc5000, 8192, PROT_READ) = 0 <0.000034>
+2073  22:09:09.432082 mprotect(0x8049000, 4096, PROT_READ) = 0 <0.000030>
+2073  22:09:09.432200 mprotect(0x823000, 4096, PROT_READ) = 0 <0.000030>
+2073  22:09:09.432310 munmap(0xb77aa000, 89345) = 0 <0.000041>
+2073  22:09:09.432478 --- SIGSEGV (Segmentation fault) @ 0 (0) ---
+2073  22:09:09.432617 +++ killed by SIGSEGV +++

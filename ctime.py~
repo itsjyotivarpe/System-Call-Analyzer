@@ -1,0 +1,31 @@
+import sqlite3
+import sys
+
+
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()
+
+with conn:
+
+	#curs.execute("SELECT * from syscall")
+	#
+	curs.executescript("""
+        DROP TABLE IF EXISTS timegraph;
+        CREATE TABLE timegraph(SysName TEXT,Time INTEGER);
+        """);
+	curs.execute("SELECT sum(time), SysName FROM syscall GROUP BY SysName")
+	#curs.execute("SELECT Error, SysName FROM syscall")
+	rows = curs.fetchall()
+	for row in rows:
+	    #print row
+	    curs.executescript("""INSERT INTO timegraph VALUES('%s','%s');"""%(row[1], row[0]))
+	curs.execute("SELECT * FROM timegraph")
+	rows = curs.fetchall()
+	for row in rows:
+	    print str(row[1])+"     "+str(row[0])
+	
+	    #print("%.20f" % round(row[0],2))
+
+	

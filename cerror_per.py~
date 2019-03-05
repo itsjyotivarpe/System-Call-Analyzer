@@ -1,0 +1,37 @@
+import sqlite3
+import sys
+
+total_time = 0.0
+var1 = 0.0
+var2 = 0.0
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()
+
+with conn:
+
+	curs.executescript("""
+        DROP TABLE IF EXISTS errorper_tab;
+        CREATE TABLE errorper_tab(SysName TEXT,Time INTEGER);
+        """);
+
+	curs.execute("SELECT * FROM error_tab")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    t = str(row[1])
+	    total_time = total_time + row[1]
+	    
+	curs.execute("SELECT * FROM error_tab")
+	rows = curs.fetchall()
+	
+	for row in rows:
+	    var1 = row[1]/total_time
+	    var2 = var1*100
+	    curs.executescript("""INSERT INTO errorper_tab VALUES('%s','%f');"""%(row[0], var2))
+
+	curs.execute("SELECT * FROM errorper_tab")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    print row
