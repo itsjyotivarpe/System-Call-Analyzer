@@ -1,0 +1,661 @@
+# Guinew1.py
+
+import commands
+import wx
+import sqlite3
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()		#for syscall
+curs1 = conn.cursor()		#for unfinished
+curs2 = conn.cursor()		#for timegraph
+
+class Example(wx.Frame):
+    
+    def __init__(self, *args, **kwargs):
+        super(Example, self).__init__(*args, **kwargs) 
+        self.InitUI()
+        
+    def InitUI(self):    
+
+        self.SetSize((800, 400))
+        self.SetTitle('System Call Analyzer')
+        self.Centre()
+        self.Show(True)
+        
+     # Font for the text
+
+        self.font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+        self.font.SetPointSize(15)
+
+     # Menubar
+
+        self.menubar = wx.MenuBar()
+        
+        self.fileMenu = wx.Menu()
+        self.fitem = self.fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        self.menubar.Append(self.fileMenu, '&File')
+        self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+        
+        self.SetMenuBar(self.menubar)
+
+    # self.panel for main screen
+
+        self.panel = wx.Panel(self)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.stpwd = wx.StaticText(self.panel, label='Enter Password')
+        self.stpwd.SetFont(self.font)
+        self.vbox.Add(self.stpwd, flag=wx.CENTER, border=200)
+
+        self.tcpwd = wx.TextCtrl(self.panel, style=wx.TE_PASSWORD)
+        self.vbox.Add(self.tcpwd, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=200)
+
+        self.btn1 = wx.Button(self.panel, label='Start', size=(200, 100))
+        self.btn1.Bind(wx.EVT_BUTTON, self.OnClick1)
+        self.vbox.Add(self.btn1, flag=wx.ALIGN_CENTER | wx.TOP, border=50)
+        
+        self.panel.SetSizer(self.vbox)
+                                
+    def OnQuit(self, e):
+        self.Close()
+
+    def OnClick1(self, e):
+
+	pwd = self.tcpwd.GetValue()
+	
+	if pwd!="sparse123":
+		self.frameerr = wx.Frame(self, -1, 'Error !!!', pos = (300,300), size = (500,200))
+	        self.panelerrpwd = wx.Panel(self.frameerr)
+	        self.hboxerrpwd = wx.BoxSizer(wx.HORIZONTAL)
+		self.sterrpwd = wx.StaticText(self.panelerrpwd, label='Wrong Password ...')
+		self.sterrpwd.SetFont(self.font)
+		self.hboxerrpwd.Add(self.sterrpwd, flag=wx.RIGHT, border=200)
+	        self.panelerrpwd.SetSizer(self.hboxerrpwd)
+		self.frameerr.Show()
+
+	else:
+        	self.frame1 = wx.Frame(self, -1, 'System Call Analyzer', pos = (200,200), size = (800,500), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+        
+	    # self.panel for screen Through Command
+
+		self.panel1 = wx.Panel(self.frame1)
+		self.vbox11 = wx.BoxSizer(wx.VERTICAL)
+	 	self.hbox11 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.st1 = wx.StaticText(self.panel1, label='Enter Command : ')
+		self.st1.SetFont(self.font)
+		self.hbox11.Add(self.st1, flag=wx.RIGHT, border=200)
+
+		self.tc11 = wx.TextCtrl(self.panel1)
+		self.hbox11.Add(self.tc11, proportion=1)
+		self.vbox11.Add(self.hbox11, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+		self.vbox11.Add((-1, 10))
+
+		self.hbox12 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.st2 = wx.StaticText(self.panel1, label='Enter Filename(If Required):')
+		self.st2.SetFont(self.font)
+		self.hbox12.Add(self.st2, flag=wx.RIGHT, border=200)
+
+		self.tc12 = wx.TextCtrl(self.panel1)
+		self.hbox12.Add(self.tc12, proportion=1)
+		self.vbox11.Add(self.hbox12, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+		self.vbox11.Add((-1, 10))
+
+		self.btn11 = wx.Button(self.panel1, label='SUBMIT', size=(200, 100))
+		self.btn11.Bind(wx.EVT_BUTTON, self.OnClick11)
+		self.vbox11.Add(self.btn11, flag = wx.TOP | wx.CENTER, border=100) 
+	    
+		self.panel1.SetSizer(self.vbox11)
+		self.frame1.Show()
+
+	#Click on SUBMIT button
+
+    def OnClick11(self, e):
+
+	cmd=''
+	filenm=''
+	list1 = ['cat','find','sort','split','wc']
+        cmd = self.tc11.GetValue()
+
+	if cmd == 'vi':
+		self.frameerr = wx.Frame(self, -1, 'Error !!!', pos = (300,300), size = (500,200))
+	        self.panelerr = wx.Panel(self.frameerr)
+	        self.hboxerr = wx.BoxSizer(wx.HORIZONTAL)
+		self.sterr = wx.StaticText(self.panelerr, label='vi command NOT allowed ...')
+		self.sterr.SetFont(self.font)
+		self.hboxerr.Add(self.sterr, flag=wx.RIGHT, border=200)
+	        self.panelerr.SetSizer(self.hboxerr)
+		self.frameerr.Show()
+
+	elif cmd in list1:
+		filenm = self.tc12.GetValue()
+
+		if filenm=='':
+			self.frameerr = wx.Frame(self, -1, 'Error !!!', pos = (300,300), size = (500,200))
+		        self.panelerr = wx.Panel(self.frameerr)
+		        self.hboxerr = wx.BoxSizer(wx.HORIZONTAL)
+			self.sterr = wx.StaticText(self.panelerr, label='Enter File Name Please ...')
+			self.sterr.SetFont(self.font)
+			self.hboxerr.Add(self.sterr, flag=wx.RIGHT, border=200)
+		        self.panelerr.SetSizer(self.hboxerr)
+			self.frameerr.Show()
+		else:
+			self.run()
+
+	elif cmd=='firefox':
+
+		self.framefire = wx.Frame(self, -1, 'Warning !!!', pos = (300,300), size = (450,175))
+
+		self.panelfire = wx.Panel(self.framefire)
+		self.vboxfire = wx.BoxSizer(wx.VERTICAL)
+		self.hboxfire1 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.stfire = wx.StaticText(self.panelfire, label='To get better output you have to\n close most resent firefox window \nas soon as possible...\n Do you still want to continue')
+		self.stfire.SetFont(self.font)
+		self.hboxfire1.Add(self.stfire, flag=wx.RIGHT, border=200)
+
+		self.vboxfire.Add(self.hboxfire1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=25)
+		self.vboxfire.Add((-1, 10))
+		
+		self.hboxfire2 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.btnok = wx.Button(self.panelfire, label='OK', size=(100, 50))
+		self.btnok.Bind(wx.EVT_BUTTON, self.OnOK)
+		self.hboxfire2.Add(self.btnok, flag=wx.ALIGN_LEFT, border=50)
+
+		self.stfire = wx.StaticText(self.panelfire, label='            ')
+		self.hboxfire2.Add(self.stfire)
+
+		self.btncncl = wx.Button(self.panelfire, label='CANCEL', size=(100, 50))
+		self.btncncl.Bind(wx.EVT_BUTTON, self.Oncncl)
+		self.hboxfire2.Add(self.btncncl, flag=wx.ALIGN_RIGHT, border=50)
+
+		self.vboxfire.Add(self.hboxfire2, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=50)
+		self.vboxfire.Add((-1, 10))
+		self.panelfire.SetSizer(self.vboxfire)
+
+		self.framefire.Show()
+
+	else:
+		self.run()
+	
+	#Click on OK button in firefox warning window
+    def OnOK(self, e):
+	#self.run()
+	commands.getoutput("strace -o sample.txt -tt -f -TT firefox")
+	commands.getstatusoutput("python fireclose.py")
+	self.framefire.Hide()
+	self.disp()
+
+	#Click on CANCEL button in firefox warning window
+    def Oncncl(self, e):
+	self.tc11.SetValue(" ")
+	self.framefire.Hide()
+	
+	#Parsing strace output
+    def run(self):
+
+		cmd = self.tc11.GetValue()
+		filenm = self.tc12.GetValue()
+
+		trace = "strace -o sample.txt -tt -f -TT "+cmd+" "+filenm
+		output = commands.getstatusoutput(trace)
+		commands.getstatusoutput("python parse2.py")
+		
+		self.disp()
+
+    def disp(self):
+		self.framedisp = wx.Frame(self, -1, 'System Call Analyser Output !!!', pos = (200,200), size = (650,400), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.paneldisp = wx.Panel(self.framedisp)
+		self.vboxdisp = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxdisp1 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Perticular System Call Statistics
+
+		self.btnPert = wx.Button(self.paneldisp, label='Perticular Syscall Statistics', size=(250, 100))
+		#self.btnPert.Bind(wx.EVT_BUTTON, self.OnPert)
+		self.hboxdisp1.Add(self.btnPert, border=100)
+
+		self.stdisp1 = wx.StaticText(self.paneldisp, label='            ')
+		self.hboxdisp1.Add(self.stdisp1)
+
+	#Comparitive Statistics of all System Calls
+
+		self.btnComp = wx.Button(self.paneldisp, label='Comparitive Syscall Statistics', size=(250, 100))
+		self.btnComp.Bind(wx.EVT_BUTTON, self.OnComp)
+		self.hboxdisp1.Add(self.btnComp, border=100)
+
+		self.vboxdisp.Add(self.hboxdisp1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=50)
+		self.vboxdisp.Add((-1, 10))
+
+		self.hboxdisp2 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Syscall Trace
+
+		self.btnTrace = wx.Button(self.paneldisp, label='System Call Trace', size=(250, 100))
+		self.btnTrace.Bind(wx.EVT_BUTTON, self.OnTrace)
+		self.hboxdisp2.Add(self.btnTrace, border=100)
+
+		self.stdisp2 = wx.StaticText(self.paneldisp, label='            ')
+		self.hboxdisp2.Add(self.stdisp2)
+
+	# Unfinished Syscall
+
+		self.btnUnfin = wx.Button(self.paneldisp, label='Unfinished System Calls', size=(250, 100))
+		self.btnUnfin.Bind(wx.EVT_BUTTON, self.OnUnfin)
+		self.hboxdisp2.Add(self.btnUnfin, border=100)
+
+		self.vboxdisp.Add(self.hboxdisp2, flag=wx.LEFT | wx.RIGHT, border=50)
+		self.vboxdisp.Add((-1, 10))
+
+		self.hboxdisp3 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Process Tree
+
+		self.btnProc = wx.Button(self.paneldisp, label='Process Tree', size=(250, 100))
+		#self.btnProc.Bind(wx.EVT_BUTTON, self.OnProc)
+		self.hboxdisp3.Add(self.btnProc, border=100)
+
+		self.stdisp3 = wx.StaticText(self.paneldisp, label='            ')
+		self.hboxdisp3.Add(self.stdisp3)
+
+	# Code Optimization
+
+		self.btnCode = wx.Button(self.paneldisp, label='Code Optimization', size=(250, 100))
+		#self.btnCode.Bind(wx.EVT_BUTTON, self.OnCode)
+		self.hboxdisp3.Add(self.btnCode, border=100)
+
+		self.vboxdisp.Add(self.hboxdisp3, flag=wx.LEFT | wx.RIGHT, border=50)
+		self.vboxdisp.Add((-1, 10))
+
+		self.paneldisp.SetSizer(self.vboxdisp)
+
+		self.framedisp.Show()
+
+# Button Cliks on Output Screen
+
+	# Comparitive Statistics
+ 
+    def OnComp(self, e):        
+
+		self.framecomp = wx.Frame(self, -1, 'Comparative Statics of All System Calls !!!', pos = (200,200), size = (650,400), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelcomp = wx.Panel(self.framecomp)
+		self.vboxcomp = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxcomp1 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Time Consumed By all System Call
+
+		self.btnTime = wx.Button(self.panelcomp, label='Time Consumption of Syscalls', size=(250, 100))
+		self.btnTime.Bind(wx.EVT_BUTTON, self.OnTime)
+		self.hboxcomp1.Add(self.btnTime, border=100)
+
+		self.stcomp1 = wx.StaticText(self.panelcomp, label='            ')
+		self.hboxcomp1.Add(self.stcomp1)
+
+	# Percentage Time Consumption of all System Calls
+
+		self.btnPerTime = wx.Button(self.panelcomp, label='Percentage Time Consumption \n of Syscalls', size=(250, 100))
+		self.btnPerTime.Bind(wx.EVT_BUTTON, self.OnPerTime)
+		self.hboxcomp1.Add(self.btnPerTime, border=100)
+
+		self.vboxcomp.Add(self.hboxcomp1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=50)
+		self.vboxcomp.Add((-1, 10))
+
+		self.hboxcomp2 = wx.BoxSizer(wx.HORIZONTAL)
+
+	# Errors in All System Calls
+
+		self.btnErr = wx.Button(self.panelcomp, label='System Call Errors', size=(250, 100))
+		self.btnErr.Bind(wx.EVT_BUTTON, self.OnErr)
+		self.hboxcomp2.Add(self.btnErr, border=100)
+
+		self.stcomp2 = wx.StaticText(self.panelcomp, label='            ')
+		self.hboxcomp2.Add(self.stcomp2)
+
+	# Percentage Errors in All System Calls
+
+		self.btnPerErr = wx.Button(self.panelcomp, label='Percentage Erors in System Calls', size=(250, 100))
+		self.btnPerErr.Bind(wx.EVT_BUTTON, self.OnPerErr)
+		self.hboxcomp2.Add(self.btnPerErr, border=100)
+
+		self.vboxcomp.Add(self.hboxcomp2, flag=wx.LEFT | wx.RIGHT, border=50)
+		self.vboxcomp.Add((-1, 10))
+
+		self.hboxcomp3 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#System Call Count
+
+		self.btnCnt = wx.Button(self.panelcomp, label='System Call Count', size=(250, 100))
+		self.btnCnt.Bind(wx.EVT_BUTTON, self.OnCnt)
+		self.hboxcomp3.Add(self.btnCnt, border=100)
+
+		#self.stcomp3 = wx.StaticText(self.panelcomp, label='            ')
+		#self.hboxcomp3.Add(self.stcomp3)
+
+		self.vboxcomp.Add(self.hboxcomp3, flag=wx.LEFT | wx.RIGHT, border=50)
+		self.vboxcomp.Add((-1, 10))
+		
+		self.panelcomp.SetSizer(self.vboxcomp)
+
+		self.framecomp.Show()
+
+
+	# Traceing of all System Calls
+
+    def OnTrace(self, e):        
+
+		self.frameop = wx.Frame(self, -1, 'System Call Trace Output', pos = (100,100), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelop = wx.Panel(self.frameop)
+
+		self.vboxop = wx.BoxSizer(wx.VERTICAL)
+
+		self.tcop = wx.TextCtrl(self.panelop, wx.ID_ANY, size=(1200,600), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.vboxop.Add(self.tcop, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=100)
+				        
+		self.frameop.Show()
+
+		with conn:
+
+			curs.execute("SELECT * from syscall")
+			rows = curs.fetchall()
+
+			self.tcop.AppendText("\n\t\t *** Complete System Calls *** \n")
+
+			for row in rows:
+				op=' %s %15s %15s %15s %10s %30s \n' %(row[0],row[2],row[4],row[5],row[6],row[7])
+				self.tcop.AppendText(op)	
+
+	# Tracing of Unfinished and Resumed System Calls
+
+    def OnUnfin(self, e):        
+
+		self.frameUnfin = wx.Frame(self, -1, 'System Call Unfinished Calls Statistics', pos = (100,100), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelUnfin = wx.Panel(self.frameUnfin)
+
+		self.vboxUnfin = wx.BoxSizer(wx.VERTICAL)
+
+		self.tcUnfin = wx.TextCtrl(self.panelUnfin, wx.ID_ANY, size=(1200,600), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.vboxUnfin.Add(self.tcUnfin, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=100)
+				        
+		self.frameUnfin.Show()
+
+		with conn:
+
+			curs1.execute("SELECT * from unfinished")
+			rows = curs1.fetchall()
+
+			self.tcUnfin.AppendText("\n\t\t *** Incomplete System Calls *** \n")
+
+			for row in rows:
+				op=' %s %15s \n' %(row[0],row[2])
+				self.tcUnfin.AppendText(op)	
+
+# Comparitive Statistics
+
+	# Time Graph
+
+    def OnTime(self, e):        
+
+		self.frameTime = wx.Frame(self, -1, 'Time Consumption of All System Calls', pos = (100,100), size = (1100,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelTime = wx.Panel(self.frameTime)
+
+		self.vboxTime = wx.BoxSizer(wx.VERTICAL)
+		
+	        self.PhotoMaxSize = 700
+	        self.imgtime = wx.EmptyImage(1200,700)
+        	self.imgtimeCtrl = wx.StaticBitmap(self.panelTime, wx.ID_ANY, wx.BitmapFromImage(self.imgtime))
+
+		filepath = "/home/nikita/pie.png"
+		self.imgtime = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		'''
+		# scale the image, preserving the aspect ratio
+		W = self.imgtime.GetWidth()
+		H = self.imgtime.GetHeight()
+
+		
+		if W > H:
+		    NewW = self.PhotoMaxSize
+		    NewH = self.PhotoMaxSize * H / W
+		else:
+		    NewH = self.PhotoMaxSize
+		    NewW = self.PhotoMaxSize * W / H
+
+		self.imgtime = self.imgtime.Scale(NewW,NewH)
+		''' 
+		self.imgtimeCtrl.SetBitmap(wx.BitmapFromImage(self.imgtime))
+
+		self.vboxTime.Add(self.imgtimeCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxTime.Add((-1, 10))
+
+		self.tcTime = wx.TextCtrl(self.panelTime, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcTime.AppendText("The maximum time was Consumed by System Call: \t")
+		
+		commands.getstatusoutput("python time1.py")
+
+		with conn:
+
+			curs2.execute("SELECT max(Time), Sysname from timegraph")
+			row = curs2.fetchone()
+			
+			name=str(row[0])
+			timing=str(row[1])
+			self.tcTime.AppendText(name)
+			self.tcTime.AppendText("\n And the Time is: \t")
+			self.tcTime.AppendText(timing)
+
+		self.vboxTime.Add(self.tcTime, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxTime.Add((-1, 10))
+	
+		self.panelTime.SetSizer(self.vboxTime)
+			        
+		self.frameTime.Show()
+
+	# Percentage Time Graph
+
+    def OnPerTime(self, e):        
+
+		self.framePerTime = wx.Frame(self, -1, 'Percentage Time Consumption of All System Calls', pos = (100,100), size = (1100,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelPerTime = wx.Panel(self.framePerTime)
+
+		self.vboxPerTime = wx.BoxSizer(wx.VERTICAL)
+		
+	        self.imgPerTime = wx.EmptyImage(1200,700)
+        	self.imgPerTimeCtrl = wx.StaticBitmap(self.panelPerTime, wx.ID_ANY, wx.BitmapFromImage(self.imgPerTime))
+
+		filepath = "/home/nikita/pie.png"
+		self.imgPerTime = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgPerTimeCtrl.SetBitmap(wx.BitmapFromImage(self.imgPerTime))
+
+		self.vboxPerTime.Add(self.imgPerTimeCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxPerTime.Add((-1, 10))
+
+		self.tcPerTime = wx.TextCtrl(self.panelPerTime, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcPerTime.AppendText("The maximum PerTime was Consumed by System Call: \t")
+		
+		commands.getstatusoutput("python time_per.py")
+
+		with conn:
+
+			curs2.execute("SELECT max(Time_Per), Sysname from timeper")
+			row = curs2.fetchone()
+			
+			nameper=str(row[0])
+			timeper=str(row[1])
+			self.tcPerTime.AppendText(nameper)
+			self.tcPerTime.AppendText("\n And the PerTime is: \t")
+			self.tcPerTime.AppendText(timeper)
+
+		self.vboxPerTime.Add(self.tcPerTime, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxPerTime.Add((-1, 10))
+	
+		self.panelPerTime.SetSizer(self.vboxPerTime)
+			        
+		self.framePerTime.Show()
+
+	# Error Graph
+
+    def OnErr(self, e):        
+
+		self.frameErr = wx.Frame(self, -1, 'Errors in All System Calls', pos = (100,100), size = (1100,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelErr = wx.Panel(self.frameErr)
+
+		self.vboxErr = wx.BoxSizer(wx.VERTICAL)
+		
+	        self.imgErr = wx.EmptyImage(1200,700)
+        	self.imgErrCtrl = wx.StaticBitmap(self.panelErr, wx.ID_ANY, wx.BitmapFromImage(self.imgErr))
+
+		filepath = "/home/nikita/pie.png"
+		self.imgErr = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgErrCtrl.SetBitmap(wx.BitmapFromImage(self.imgErr))
+
+		self.vboxErr.Add(self.imgErrCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxErr.Add((-1, 10))
+
+		self.tcErr = wx.TextCtrl(self.panelErr, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcErr.AppendText("The maximum Errors were occured in System Call: \t")
+		
+		commands.getstatusoutput("python time1.py")
+
+		with conn:
+
+			curs2.execute("SELECT max(time), Sysname from timegraph")
+			row = curs2.fetchone()
+			
+			namerr=str(row[0])
+			cnterr=str(row[1])
+			self.tcErr.AppendText(namerr)
+			self.tcErr.AppendText("\n And no.of Errors is: \t")
+			self.tcErr.AppendText(cnterr)
+
+		self.vboxErr.Add(self.tcErr, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxErr.Add((-1, 10))
+	
+		self.panelErr.SetSizer(self.vboxErr)
+			        
+		self.frameErr.Show()
+
+	# Percentage of Errors of system calls
+
+    def OnPerErr(self, e):        
+
+		self.framePerErr = wx.Frame(self, -1, 'Percentage Time Consumption of All System Calls', pos = (100,100), size = (1100,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelPerErr = wx.Panel(self.framePerErr)
+
+		self.vboxPerErr = wx.BoxSizer(wx.VERTICAL)
+		
+	        self.imgPerErr = wx.EmptyImage(1200,700)
+        	self.imgPerErrCtrl = wx.StaticBitmap(self.panelPerErr, wx.ID_ANY, wx.BitmapFromImage(self.imgPerErr))
+
+		filepath = "/home/nikita/pie.png"
+		self.imgPerErr = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgPerErrCtrl.SetBitmap(wx.BitmapFromImage(self.imgPerErr))
+
+		self.vboxPerErr.Add(self.imgPerErrCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxPerErr.Add((-1, 10))
+
+		self.tcPerErr = wx.TextCtrl(self.panelPerErr, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcPerErr.AppendText("The maximum Error was Consumed by System Call: \t")
+		
+		commands.getstatusoutput("python time1.py")
+
+		with conn:
+
+			curs2.execute("SELECT max(time), Sysname from timegraph")
+			row = curs2.fetchone()
+			
+			nameper=str(row[0])
+			timeper=str(row[1])
+			self.tcPerErr.AppendText(nameper)
+			self.tcPerErr.AppendText("\n And the Percentage is: \t")
+			self.tcPerErr.AppendText(timeper)
+
+		self.vboxPerErr.Add(self.tcPerErr, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxPerErr.Add((-1, 10))
+	
+		self.panelPerErr.SetSizer(self.vboxPerErr)
+			        
+		self.framePerErr.Show()
+
+    def OnCnt(self, e):        
+
+		self.frameCnt = wx.Frame(self, -1, 'Percentage Time Consumption of All System Calls', pos = (100,100), size = (1100,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.panelCnt = wx.Panel(self.frameCnt)
+
+		self.vboxCnt = wx.BoxSizer(wx.VERTICAL)
+		
+	        self.imgCnt = wx.EmptyImage(1200,700)
+        	self.imgCntCtrl = wx.StaticBitmap(self.panelCnt, wx.ID_ANY, wx.BitmapFromImage(self.imgCnt))
+
+		filepath = "/home/nikita/pie.png"
+		self.imgCnt = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgCntCtrl.SetBitmap(wx.BitmapFromImage(self.imgCnt))
+
+		self.vboxCnt.Add(self.imgCntCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxCnt.Add((-1, 10))
+
+		self.tcCnt = wx.TextCtrl(self.panelCnt, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcCnt.AppendText("The System Call which got called maximum times is: \t")
+		
+		commands.getstatusoutput("python time1.py")
+
+		with conn:
+
+			curs2.execute("SELECT max(time), Sysname from timegraph")
+			row = curs2.fetchone()
+			
+			namecnt=str(row[0])
+			timecnt=str(row[1])
+			self.tcCnt.AppendText(namecnt)
+			self.tcCnt.AppendText("\n And the Cnt is: \t")
+			self.tcCnt.AppendText(timecnt)
+
+		self.vboxCnt.Add(self.tcCnt, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxCnt.Add((-1, 10))
+	
+		self.panelCnt.SetSizer(self.vboxCnt)
+			        
+		self.frameCnt.Show()
+
+
+		
+    def OnQuits(self, e):
+	self.Close()
+
+def main():
+    
+    ex = wx.App()
+    main = Example(None)
+    ex.MainLoop()    
+
+if __name__ == '__main__':
+    main()

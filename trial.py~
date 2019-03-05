@@ -1,0 +1,119 @@
+
+import sys
+import getopt
+import re
+import traceback
+import logging
+import sqlite3
+
+#temp2 = 0
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()
+curs.executescript("""
+        DROP TABLE IF EXISTS syscall;
+        CREATE TABLE syscall(Pid TEXT, StartTime TEXT, SysName TEXT, arg TEXT, ret TEXT, time INTEGER, Error TEXT, Desc TEXT);
+        """);
+#curs.execute("CREATE TABLE syscall(Pid TEXT, StartTime TEXT, SysName TEXT, arg TEXT, ret TEXT, time INTEGER, Error TEXT, Desc TEXT);");#
+
+curs3 = conn.cursor()
+#curs3.executescript("CREATE TABLE sysdisp(Pid TEXT, StartTime TEXT, SysName TEXT, ret TEXT, time INTEGER, Status TEXT);");
+curs3.executescript("""
+        DROP TABLE IF EXISTS sysdisp;
+        CREATE TABLE sysdisp(Pid TEXT, StartTime TEXT, SysName TEXT, ret TEXT, time INTEGER, Status TEXT);
+        """);
+
+curs1 = conn.cursor()
+#curs1.executescript("CREATE TABLE unfinished(Pid TEXT, StartTime TEXT, SysName TEXT, arg TEXT);");
+curs1.executescript("""
+        DROP TABLE IF EXISTS unfinished;
+        CREATE TABLE unfinished(Pid TEXT, StartTime TEXT, SysName TEXT, arg TEXT);
+        """);
+
+
+curs2 = conn.cursor()
+#curs2.executescript("CREATE TABLE resumed(Pid TEXT, SysName TEXT, totl INTEGER, idle INTEGER);");
+curs2.executescript("""
+        DROP TABLE IF EXISTS resumed;
+        CREATE TABLE resumed(Pid TEXT, SysName TEXT, totl INTEGER, idle INTEGER);
+        """);
+
+
+def autoDetectFormat():
+        
+	with open("pat.txt") as f:
+
+		for line in f:
+    			result = detectLineFormat(line)
+    
+	with conn:
+
+		print("\n\t\t Complete System Calls...\n")
+		print('\n Pid        SyscallName        RetVaL        Timespent      Error         Description \n')
+
+		curs.execute("SELECT * from syscall")
+		rows = curs.fetchall()
+
+		for row in rows:
+
+			print(' %s %15s %15s %10s %15s %15s' %(row[0],row[2],row[4],row[5],row[6],row[7]))	
+
+
+
+
+#Line1={}
+Line15={}
+
+
+
+
+def detectLineFormat(line):
+	result15=regexp15.search(line)
+	#result16=regexp16.search(line)
+	#result1=regexp1.search(line)
+	
+
+
+	if result15:
+
+	    print("15!!!")
+
+	    Line15["Pid"] = result15.group(0)
+            Line15["StartTime"] = result15.group(1)
+            Line15["Syscall"]= result15.group(2)
+	    Line15["Args"] = result15.group(3)
+	    Line15["Ret"] = result15.group(4)
+	    Line15["Error"] = 'null'
+	    Line15["Desc"] = 'null'
+	    Line15["TimeSpent"] = result15.group(5)
+	    Line15["Status"] = 'Success'
+
+	    curs2.executescript("""
+	    	INSERT INTO sysdisp VALUES('%s','%s','%s','%s','%s','%s');
+		"""%(Line15["Pid"], Line15["StartTime"], Line15["Syscall"], Line15["Ret"], Line15["TimeSpent"], Line15["Status"]))
+
+	    curs.executescript("""
+	    	INSERT INTO syscall VALUES('%s','%s','%s','%s','%s','%s','%s','%s');
+		"""%(Line15["Pid"], Line15["StartTime"], Line15["Syscall"], Line15["Args"], Line15["Ret"], Line15["TimeSpent"], Line15["Error"], Line15["Desc"]))
+
+	   # print(' %s     %s     %s          %s     %s     %s' %(Line15["Pid"],Line15["Syscall"],Line15["Ret"],Line15["TimeSpent"],Line15["Error"],Line15["Desc"]))
+	   
+	    #Line15["Args"] = 'null'
+	
+	
+	else:
+		print"nothing"
+
+
+
+	#PID TIME SYSNAME( ARG ) = DECIMAL DIGIT <TIMESPENT>
+pat15 = r'(\d+)[ ]+(\d+:\d+:\d+\.\d+)[ ]+([a-zA-Z\_0-9]+)(\(\d+,[ ]"(.*?)"(.*?)\))[ ]+=[ ]+(\-?\d+?)[ ]+\<(\d+\.\d+)\>'
+
+
+
+
+
+regexp15 = re.compile(pat15)
+
+autoDetectFormat()

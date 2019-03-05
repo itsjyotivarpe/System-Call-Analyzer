@@ -1,0 +1,194 @@
+import sys
+import sqlite3
+
+fid1 = 0
+filename1 = ''
+read_cnt1 = 1
+read_bytes1 = 0
+write_cnt1 = 1
+write_bytes1 = 0
+temp = ''
+zero = 0
+unknown = 'unknown : '
+count = 0
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()
+curs1 = conn.cursor()
+curs2 = conn.cursor()
+curs3 = conn.cursor()
+curs4 = conn.cursor()
+
+with conn:
+
+	#curs.execute("SELECT * from syscall")
+	# # self._fidStatList[fid] = [filename, read count, read acc bytes, write count, write acc bytes]
+	
+	curs.executescript("""
+        DROP TABLE IF EXISTS fileio_final1;
+        CREATE TABLE fileio_final1(filename TEXT, no INTEGER, read_cnt INTEGER, read_bytes INTEGER, write_cnt INTEGER, write_bytes INTEGER);
+        """);
+                    
+	curs.executescript("""
+        DROP TABLE IF EXISTS fileio_final;
+        CREATE TABLE fileio_final(filename TEXT, read_cnt INTEGER, read_bytes INTEGER, write_cnt INTEGER, write_bytes INTEGER);
+        """);
+	curs.executescript("""
+        DROP TABLE IF EXISTS fileio_temp;
+        CREATE TABLE fileio_temp(fid INTEGER, filename TEXT, read_cnt INTEGER, read_bytes INTEGER, write_cnt INTEGER, write_bytes INTEGER);
+        """);
+    
+    
+    
+        
+	#curs.execute("SELECT sum(Error), SysName FROM syscall GROUP BY SysName")
+	# (0Line1["Pid"], 1Line1["StartTime"], 2Line1["Syscall"], 3Line1["Args"], 4Line1["Ret"], 5Line1["TimeSpent"], 6Line1["Error"], 7Line1["Desc"]))
+        
+	curs.execute("SELECT * FROM syscall")
+	
+	rows = curs.fetchall()
+	for row in rows:
+	    #print row
+	    if row[2] == 'open':
+	        fid1 = int(row[4])
+	        #print fid1
+	        temp = row[3].split(",")
+	        filename1 = temp[0]
+	        #print filename1
+	        curs1.execute("""INSERT INTO fileio_temp VALUES('%s','%s','%s','%s','%s','%s');"""%(fid1, filename1, zero, zero, zero, zero))
+	            
+	    elif row[2] == 'close':
+	        
+	        temp = row[3].split(",")
+	        #print temp
+	        fid1 = temp[0]
+	        #print fid1
+	        #count = 0
+	        curs1.execute("""SELECT * FROM fileio_temp WHERE fid = '%s';"""%(fid1))
+	        #curs1.execute("SELECT * FROM fileio_temp")
+	        rows = curs1.fetchall()
+	        for row in rows:
+	            count = count + 1
+	        if count == 0:
+	            filename1 = 'unknown : '+fid1
+	            #print "in read"+fid1
+	            #print filename1
+	            curs1.execute("""INSERT INTO fileio_final VALUES('%s','%s','%s','%s','%s');"""%(filename1, zero, zero, zero, zero))
+	            
+	            
+	        else:
+	            curs4.execute("""SELECT * FROM fileio_temp WHERE fid = '%s';"""%(fid1))
+	            rows = curs4.fetchall()
+	            for row in rows:
+	                #print row
+	                filename1 = row[1]
+	                #print filename1
+	                read_cnt1 = row[2]
+	                #print read_cnt1
+	                read_bytes1 = row[3]
+	            
+	                #print read_bytes1
+	                write_cnt1 = row[4]
+	                #print write_cnt1
+	            
+	                write_bytes1 = row[5]
+	                #print write_bytes1
+	            if len(filename1) == 3:
+	                #print " in .jjjjjjjjjjjjjjjjjjjjjjjjjjj"
+	                unknown = unknown + fid1
+	                curs1.execute("""DELETE FROM fileio_temp WHERE fid = '%s';"""%(fid1))
+	                curs1.execute("""INSERT INTO fileio_final VALUES('%s','%s','%s','%s','%s');"""%(unknown, read_cnt1, read_bytes1, write_cnt1, write_bytes1))
+	            
+	            else:
+	                #print "df"
+	                curs1.execute("""DELETE FROM fileio_temp WHERE fid = '%s';"""%(fid1))
+	                curs1.execute("""INSERT INTO fileio_final VALUES('%s','%s','%s','%s','%s');"""%(filename1, read_cnt1, read_bytes1, write_cnt1, write_bytes1))
+	            
+	        count = 0
+	                
+	        
+	        
+	    elif row[2] == 'read':
+	    
+	        temp = row[3].split(",")
+	        fid1 = temp[0]
+	        #print fid1
+	        read_bytes1 = row[4]
+	        #print read_bytes1
+	        curs3.execute("""SELECT * FROM fileio_temp WHERE fid = '%s';"""%(fid1))
+	        rows = curs3.fetchall()
+	        for row in rows:
+	            count = count + 1
+	        if count == 0:
+	            filename1 = 'unknown : '+fid1
+	            #print "in read"
+	            #print filename1
+	            read_cnt1 = 1
+	            curs1.execute("""INSERT INTO fileio_temp VALUES('%s','%s','%s','%s','%s','%s');"""%(fid1, filename1, read_cnt1, read_bytes1, zero, zero))
+	            
+	            
+	        else:
+	        
+	            curs1.execute("""UPDATE fileio_temp SET read_cnt = read_cnt + 1 WHERE fid = '%s'"""%(fid1))
+	            curs1.execute("""UPDATE fileio_temp SET read_bytes = read_bytes + '%s' WHERE fid = '%s'"""%(read_bytes1, fid1))
+	        count = 0   
+	        
+	        
+	    elif row[2] == 'write':
+	        temp = row[3].split(",")
+	        
+	        fid1 = temp[0]
+	        #print "a"
+	        
+	        #print fid1
+	        
+	        write_bytes1 = row[4]
+	        #print write_bytes1
+	        #print "j"
+	        curs3.execute("""SELECT * FROM fileio_temp WHERE fid = '%s';"""%(fid1))
+	        rows = curs3.fetchall()
+	        for row in rows:
+	            count = count + 1
+	        if count == 0:
+	            write_cnt1 = 1
+	            filename1 = 'unknown : '+fid1
+	            curs1.execute("""INSERT INTO fileio_temp VALUES('%s','%s','%s','%s','%s','%s');"""%(fid1, filename1, zero, zero, write_cnt1, write_bytes1))
+	        
+	        else:
+	        
+	            curs1.execute("""UPDATE fileio_temp SET write_cnt = write_cnt + 1 WHERE fid = '%s'"""%(fid1))
+	            curs1.execute("""UPDATE fileio_temp SET write_bytes = write_bytes + '%s' WHERE fid = '%s'"""%(write_bytes1, fid1))
+	        count = 0
+	    #fid1 = 0
+        #filename1 = ''
+        read_cnt1 = 1
+        read_bytes1 = 0
+        write_cnt1 = 1
+        write_bytes1 = 0
+       
+        count = 0
+        '''
+	    curs2.execute("SELECT * FROM fileio_final")
+	    rows = curs2.fetchall()
+	    for row in rows:
+	        print row
+	     '''
+	print "Filename  Filename_open_count  Read_Count  Read_Bytes  Write_Count  Write_Bytes"
+	   
+	    
+	curs2.execute("select filename, COUNT(filename), sum(read_cnt), sum(read_bytes), sum(write_cnt), sum(write_bytes) from fileio_final GROUP BY filename;")
+	rows = curs2.fetchall()
+	for row in rows:
+	    #print row
+	    curs1.execute("""INSERT INTO fileio_final1 VALUES('%s','%s','%s','%s','%s','%s');"""%(row[0], row[1], row[2], row[3], row[4], row[5]))
+	
+	curs2.execute("select * from fileio_final1;")
+	rows = curs2.fetchall()
+	for row in rows:
+	    print row
+            
+	    #print("%.20f" % round(row[0],2))
+
+	
+

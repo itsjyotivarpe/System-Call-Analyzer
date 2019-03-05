@@ -1,0 +1,2 @@
+4013  01:51:44.687319 <... wait4 resumed> [{WIFEXITED(s) && WEXITSTATUS(s) == 1}], 0, NULL) = 4014 <0.402551>
+

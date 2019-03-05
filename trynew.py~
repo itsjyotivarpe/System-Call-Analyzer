@@ -1,0 +1,33 @@
+import matplotlib.pyplot as plt
+import sqlite3
+
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()
+
+with conn:
+	curs.execute("SELECT * from timeper")
+	#apps = {}
+
+	#with open('data.txt', 'r') as f:
+	#    lines = f.readlines()
+	rows = curs.fetchall()
+	'''	
+	for row in rows:
+	for line in lines:
+    	app = line.split(',')[1].strip()
+    	if app not in apps:
+        apps[app] = 1
+    	else:
+        apps[app] += 1
+
+	data = [(k,apps[k]) for k in apps]
+	data_s = sorted(data, key=lambda x: x[1])
+	'''
+	x = [row[1] for row in rows]
+	l = [row[0] for row in rows]
+	plt.pie(x)
+	plt.legend(l, loc='best')
+
+	plt.show()

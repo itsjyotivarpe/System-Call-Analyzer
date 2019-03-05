@@ -1,0 +1,182 @@
+import sys
+import getopt
+import re
+import traceback
+import logging
+import sqlite3
+
+no = 0
+k = 0
+pid = ''
+starttime = ''
+sysname = ''
+arg = ''
+ret = ''
+time = ''
+error = ''
+desc = ''
+temp = ''
+size = ''
+size = 0
+mode1 = ''
+addr = 0
+addr1 = ''
+final_addr = ''
+
+conn = sqlite3.connect('sparse.db')
+curs = conn.cursor()
+
+def sigsegv():
+    no = 0
+    k = 0
+    pid = ''
+    starttime = ''
+    sysname = ''
+    arg = ''
+    ret = ''
+    time = ''
+    error = ''
+    desc = ''
+    temp = ''
+    size = ''
+    size = 0
+    mode1 = ''
+    addr = 0
+    addr1 = ''
+    final_addr = ''
+    count = 0
+    wr_cnt = 0
+    wr = ''
+    call_string = ''
+    call_str = []
+    c_s_cnt = 0
+
+    with conn:
+        #print "hi"
+        curs.execute("SELECT * from sigsegv")
+        rows=curs.fetchall()
+        #for row in rows:
+        #    print row        
+        for row in rows:
+            count = count + 1
+            no = row[3]
+            wr_cnt = row[4]
+
+        no = no - 1
+
+        if count > 0:
+            curs.execute("SELECT * from syscall")
+            rows=curs.fetchall()
+
+            for row in rows:
+                k = k + 1
+                pid = row[0]
+                starttime = row[1]
+                sysname = row[2]
+                arg = row[3]
+                ret = row[4]
+                time = row[5]
+                error = row[6]
+                desc = row[7]
+                
+                if k == no:
+                    break
+
+            if sysname == 'open':
+                result = arg.split(" ")
+                print "\n\t *)Segmentation Fault occured because of Error in Opening File : %s ."%result[0]
+                print "\t     May be file tried to be opened does not exists !!!"
+                
+            elif sysname == 'munmap':
+                temp = arg.split(', ')
+                size = temp[1]
+                size1 = int(size)
+                addr = int(temp[0], 16)
+                addr = addr + size1
+                addr1 = ChangeHex(addr)
+                final_addr = temp[0] + " - " + addr1
+                print "\n\t *)Segmentation Fault occured because of Invalid Memory Access !!!"
+                print('\t     Address space : %s has been Unmapped and this Memory has been Accessed.' %(final_addr))
+                
+            elif sysname == 'read':
+                wr = str(wr_cnt)
+                curs.execute("SELECT * from read_final1")
+                rows=curs.fetchall()
+
+                for row in rows:
+                    call_string = row[1]
+                    call_str = call_string.split(" , ")
+
+                    for c_s in call_str:
+                        if wr == c_s:
+                            c_s_cnt = 1
+                            filename1 = row[0]
+                            break
+
+                    if c_s_cnt == 1:
+                        break
+
+                    c_s_cnt = 0
+
+                if c_s_cnt ==1:
+                    print "\n\t *)Segmentation Fault occured because Unauthorised Read System call has been made on %s file."%filename1
+                else:
+                    print "\n\t *)Segmentation Fault occured because Unauthorised Read Sysem Call has been made on some file."
+
+            elif sysname == 'write':
+                wr = str(wr_cnt)
+                curs.execute("SELECT * from write_final1")
+                rows=curs.fetchall()
+
+                for row in rows:
+                    call_string = row[1]
+                    call_str = call_string.split(" , ")
+
+                    for c_s in call_str:
+                        if wr == c_s:
+                            c_s_cnt = 1
+                            filename1 = row[0]
+                            break
+
+                    if c_s_cnt == 1:
+                        break
+
+                    c_s_cnt = 0
+
+                if c_s_cnt ==1:
+                    print "\n\t *)Segmentation Fault occured because Unauthorised Write System Call has been made on %s file."%filename1
+                else:
+                    print "\n\t *)Segmentation Fault occured because Unauthorised Write System Call has been made on some file."
+
+            else :
+                print "\n\t *)Segmentation Fault occured because of %s System call."%sysname
+
+        else:
+            print "\n\t\t *** No Segmentation Fault occured in your Program ***"
+
+def ChangeHex(n):
+    x = (n % 16)
+    c = ""
+
+    if (x < 10):
+        c = x
+    if (x == 10):
+        c = "A"
+    if (x == 11):
+        c = "B"
+    if (x == 12):
+        c = "C"
+    if (x == 13):
+        c = "D"
+    if (x == 14):
+        c = "E"
+    if (x == 15):
+        c = "F"
+
+    if (n - x != 0):
+        return ChangeHex(n / 16) + str(c)
+
+    else:
+        return str(c)
+        
+sigsegv()

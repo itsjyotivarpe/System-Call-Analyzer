@@ -1,0 +1,28 @@
+     EACCES    Search permission is denied for a component of the path prefix.
+
+     EFAULT    buf or path points to an invalid address.
+
+     EINTR     A signal was caught during the stat or lstat system call.
+
+     ETIMEDOUT The named file is located on a remote file system which is not
+               available [see intro(2)].
+
+     ELOOP     Too many symbolic links were encountered in translating path.
+
+     EMULTIHOP Components of path require hopping to multiple remote machines
+               and the file system does not allow it.
+
+     ENAMETOOLONG
+               The length of the path argument exceeds {PATH_MAX}, or the
+               length of a path component exceeds {NAME_MAX} while
+               _POSIX_NO_TRUNC is in effect.
+
+     ENOENT    The named file does not exist or is the null pathname.
+
+     ENOTDIR   A component of the path prefix is not a directory.
+
+     ENOLINK   path points to a remote machine and the link to that machine is
+               no longer active.
+
+     EOVERFLOW A component is too large to store in the structure pointed to
+               by buf.

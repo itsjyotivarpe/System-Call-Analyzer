@@ -1,0 +1,5 @@
+
+import commands
+
+output = commands.getstatusoutput('python guinnew2.py')
+print output

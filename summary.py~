@@ -1,0 +1,71 @@
+import sqlite3
+import sys
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()
+curs1 = conn.cursor()
+curs2 = conn.cursor()
+total_time = 0.0
+total_time1 = 0.0
+tt = 0
+
+with conn:
+
+	curs.execute("CREATE TABLE summary_tab(SysName TEXT,count INTEGER, error INTEGER, error_per INTEGER, time INTEGER, time_per INTEGER);");
+
+	curs.execute("SELECT sum(Error), SysName FROM syscall GROUP BY SysName")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    curs.executescript("INSERT INTO summary_tab(SysName, time) VALUES('%s', '%s');"%(row[1], row[0]))
+	    
+	curs.execute("SELECT * FROM time_tab")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    t = str(row[1])
+	    curs.executescript("UPDATE summary_tab SET time='%s' WHERE SysName='%s';"%(row[1], row[0]))
+	    
+	    total_time = total_time + row[1]
+
+	curs.execute("SELECT * FROM time_tab")
+	rows = curs.fetchall()
+	
+	for row in rows:
+	    var1 = row[1]/total_time
+	    var2 = var1*100
+	    curs.executescript("UPDATE summary_tab SET time_per='%s' WHERE SysName='%s';"%(var2, row[0]))
+	    
+	curs.execute("SELECT SysName, COUNT(SysName) FROM syscall WHERE ret LIKE '-1' GROUP BY SysName;")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    curs.executescript("UPDATE summary_tab SET error='%s' WHERE SysName='%s';"%(row[1], row[0]))
+
+	curs.execute("SELECT * FROM error_tab")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    t = str(row[1])
+	    total_time1 = total_time1 + row[1]
+	    
+	curs1.execute("SELECT * FROM error_tab")
+	rows = curs1.fetchall()
+	
+	for row in rows:
+	    var1 = row[1]/total_time1
+	    var2 = var1*100
+	    curs.executescript("UPDATE summary_tab SET error_per='%s' WHERE SysName='%s';"%(var2, row[0]))
+
+	curs2.execute("select SysName, COUNT(SysName) from syscall GROUP BY SysName;")
+	rows = curs2.fetchall()
+
+	for row in rows:
+	    curs.executescript("UPDATE summary_tab SET count='%s' WHERE SysName='%s';"%(row[1], row[0]))
+	
+	curs.execute("SELECT * FROM summary_tab")
+	rows = curs.fetchall()
+
+	for row in rows:
+	    print row

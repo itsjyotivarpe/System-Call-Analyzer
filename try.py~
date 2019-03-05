@@ -1,0 +1,32 @@
+    def OnGraph(self, e):        
+	if not self.frameGraph:
+		self.frameGraph = wx.Frame(self, -1, 'Grapharative Statistics of All System Calls ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+        self.menubar = wx.MenuBar()
+        self.fileMenu = wx.Menu()
+        self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+        self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+        self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+        self.menubar.Append(self.fileMenu, '&File')
+        self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+        self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+        self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+        self.frameGraph.SetMenuBar(self.menubar)
+
+	self.panelGraph = wx.Panel(self.frameGraph)
+
+	self.vboxGraph = wx.BoxSizer(wx.VERTICAL)
+
+        self.imgGraph = wx.EmptyImage(800,500)
+	self.imgGraphCtrl = wx.StaticBitmap(self.panelGraph, wx.ID_ANY, wx.BitmapFromImage(self.imgGraph))
+	commands.getoutput("python pread.py")
+	self.persyscallstat('read_tab')
+	filepath = "Graphs/readgraph.png"
+	self.imgGraph = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+	self.imgGraphCtrl.SetBitmap(wx.BitmapFromImage(self.imgGraph))
+
+	self.vboxGraph.Add(self.imgGraphCtrl, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=5)
+	self.vboxGraph.Add((-1, 10))
+
+	self.panelGraph.SetSizer(self.hboxGraph)		        
+	self.frameGraph.Show()
+

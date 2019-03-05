@@ -1,0 +1,42 @@
+***stat***
+
+4004  01:46:10.116307 stat("guinew1.py", {st_mode=S_IFREG|0775, st_size=4648, ...}) = 0
+4004  01:46:10.116307 stat("guinew1.py", {st_mode=S_IFREG|0775, st_size=4648, ...}) = 0
+
+4004  01:46:10.116307 stat("/home/nikita/.terminfo", 0x85f1b0) = -1 ENOENT (No such file or directory)
+4004  01:46:10.116307 stat("/etc/terminfo", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+
+
+
+***stat64***
+
+4004  01:46:10.116307 stat64("/bin/basename", {st_mode=S_IFREG|0755, st_size=25080, ...}) = 0 <0.000009>
+4004  01:46:10.116390 stat64("/bin/basename", {st_mode=S_IFREG|0755, st_size=25080, ...}) = 0 <0.000009>
+
+4004  01:46:10.115826 stat64(".", {st_mode=S_IFDIR|0775, st_size=4096, ...}) = 0 <0.000009>
+4004  01:46:10.115914 stat64("/usr/lib/ccache/basename", 0xbfcaff10) = -1 ENOENT (No such file or directory) <0.000010>
+
+
+
+***fstat***
+
+1065  13:46:43.989666 fstat(37, {st_mode=S_IFREG|0644, st_size=3519, ...}) = 0 <0.000017>
+
+
+
+*** newfstatat***
+
+2077  17:02:28.734248 newfstatat(8, "Linuxtools-AutotoolsBuilders.png", {st_mode=S_IFREG|0664, st_size=55700, ...}, AT_SYMLINK_NOFOLLOW) = 0 <0.000017>
+
+
+
+***fstat64***
+
+4004  01:46:10.118456 fstat64(3, {st_mode=S_IFREG|0644, st_size=128906, ...}) = 0 <0.000007>
+
+
+
+***lstat***
+
+4007  01:46:10.177819 lstat64("/usr", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0 <0.000008>
+

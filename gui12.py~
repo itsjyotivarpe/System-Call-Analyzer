@@ -1,0 +1,2740 @@
+# Guinew1.py
+
+import commands
+import wx
+import sqlite3
+import wx.grid
+import pylab as p
+
+row_no = 0
+col_no = 0
+column = []
+col1 = 0
+col2 = 0
+row1 = 0
+row2 = 0
+row_str = ''
+row_value_str = ''
+name = ''
+
+
+conn = sqlite3.connect('sparse.db')
+
+curs = conn.cursor()		#for syscall
+curs1 = conn.cursor()		#for unfinished
+curs2 = conn.cursor()		#for timegraph
+
+ID_FILE_OPEN = wx.NewId()
+ID_FILE_INPUT = wx.NewId()
+ID_FILE_HOME = wx.NewId()
+ID_FILE_PERT = wx.NewId()
+ID_FILE_COMP = wx.NewId()
+
+class Example(wx.Frame):
+    
+	def __init__(self, *args, **kwargs):
+		super(Example, self).__init__(*args, **kwargs)
+		self.InitUI()
+		self.frame1 = wx.Frame(self, -1, 'System Call Analyzer', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.framedisp = wx.Frame(self, -1, 'System Call Analyser Output ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.framePert = wx.Frame(self, -1, 'Statistics Of Special System Calls ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.framecomp = wx.Frame(self, -1, 'Comparative Statics of All System Calls ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameop = wx.Frame(self, -1, 'System Call Trace Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameUnfin = wx.Frame(self, -1, 'Unfinished And Resumed Calls Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameCode = wx.Frame(self, -1, 'Code Optimization', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameFileio = wx.Frame(self, -1, 'File Input/Output Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameErrana = wx.Frame(self, -1, 'Error Analysis', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameSummary = wx.Frame(self, -1, 'Summary of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRead = wx.Frame(self, -1, 'Particular Systam Call Statistics : READ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameWrite = wx.Frame(self, -1, 'Particular Systam Call Statistics : WRITE', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameAccess = wx.Frame(self, -1, 'Particular Systam Call Statistics : ACCESS', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.framePipe = wx.Frame(self, -1, 'Perticular System Call Statistics : Pipe', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameFstat = wx.Frame(self, -1, 'Particular Systam Call Statistics : FSTAT/FSTAT64', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameStat = wx.Frame(self, -1, 'Particular Systam Call Statistics : STAT/STAT64', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameLstat = wx.Frame(self, -1, 'Particular Systam Call Statistics : LSTAT/LSTAT64', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameMmap = wx.Frame(self, -1, 'Particular Systam Call Statistics : MMAP', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameMprotect = wx.Frame(self, -1, 'Particular Systam Call Statistics : MPROTECT', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameMunmap = wx.Frame(self, -1, 'Particular System Call Statistics : MUNMAP', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRt_sigaction = wx.Frame(self, -1, 'Particular Systam Call Statistics : RT_SIGACTION', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameUname = wx.Frame(self, -1, 'Particular Systam Call Statistics : UNAME', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameTime = wx.Frame(self, -1, 'Time Consumption of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.framePerTime = wx.Frame(self, -1, 'Percentage Time Consumption of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameErr = wx.Frame(self, -1, 'Errors in All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.framePerErr = wx.Frame(self, -1, 'Percentage Errors in All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameCnt = wx.Frame(self, -1, 'Count of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameSysTrace = wx.Frame(self, -1, 'System Call Trace Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameSigTrace = wx.Frame(self, -1, 'Signals Trace Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameUnfini = wx.Frame(self, -1, 'Unfinished System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameResumed = wx.Frame(self, -1, 'Resumed System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameInfo = wx.Frame(self, -1, 'Information of All System Calls in Particular Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRefer1 = wx.Frame(self, -1, 'Code Optimization : Escape Charactors', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRefer2 = wx.Frame(self, -1, 'Code Optimization : fflush(stdout)', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRefer3 = wx.Frame(self, -1, 'Code Optimization : Pass by Value & Pass by Reference', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRefer4 = wx.Frame(self, -1, 'Code Optimization : File Operations', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameRefer5 = wx.Frame(self, -1, 'Code Optimization : Looping Constructions', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameTest = wx.Frame(self, -1, 'Code Optimization : Tet your Program', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameHints = wx.Frame(self, -1, 'Some Hints For Code Optimization', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameProgName = wx.Frame(self, -1, 'Program Name', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.frameerr = wx.Frame(self, -1, 'Error ', pos = (300,300), size = (500,200))
+		self.frameerr1 = wx.Frame(self, -1, 'Error ', pos = (300,300), size = (500,200))
+		self.frameNoFind = wx.Frame(self, -1, 'Wanning ', pos = (300,300), size = (500,200))
+		self.frameNoDir = wx.Frame(self, -1, 'Wanning ', pos = (300,300), size = (500,200))
+		self.framefire = wx.Frame(self, -1, 'Warning ', pos = (300,300), size = (450,175))
+
+		self.frameGraph = wx.Frame(self, -1, 'Graph ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+	def InitUI(self):
+		self.SetSize((800, 400))
+		self.SetPosition((150, 150))
+		self.SetTitle('System Call Analyzer')
+		self.Centre()
+		self.Show(True)
+
+		# Font for the text
+
+		self.font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+		self.font.SetPointSize(15)
+
+		# Menubar
+
+		self.menubar = wx.MenuBar()
+
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+
+		self.SetMenuBar(self.menubar)
+
+		# self.panel for main screen
+
+		self.panel = wx.Panel(self)
+		self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+		self.stpwd = wx.StaticText(self.panel, label='Enter Password')
+		self.stpwd.SetFont(self.font)
+		self.vbox.Add(self.stpwd, flag=wx.CENTER, border=200)
+
+		self.tcpwd = wx.TextCtrl(self.panel, style=wx.TE_PASSWORD)
+		self.vbox.Add(self.tcpwd, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=200)
+
+		self.btn1 = wx.Button(self.panel, label='Start', size=(200, 100))
+		self.btn1.Bind(wx.EVT_BUTTON, self.OnClick1)
+		self.vbox.Add(self.btn1, flag=wx.ALIGN_CENTER | wx.TOP, border=50)
+		self.panel.SetSizer(self.vbox)
+
+	def OnClick1(self, e):
+		pwd = self.tcpwd.GetValue()
+	
+		if pwd!="sparse123":
+			self.frameerr2 = wx.Frame(self, -1, 'Error ', pos = (300,300), size = (500,200))
+			self.panelerrpwd = wx.Panel(self.frameerr2)
+			self.hboxerrpwd = wx.BoxSizer(wx.HORIZONTAL)
+			self.sterrpwd = wx.StaticText(self.panelerrpwd, label='Wrong Password ...')
+			self.sterrpwd.SetFont(self.font)
+			self.hboxerrpwd.Add(self.sterrpwd, flag=wx.RIGHT, border=200)
+			self.panelerrpwd.SetSizer(self.hboxerrpwd)
+			self.frameerr2.Show()
+		else:
+			if not self.frame1:
+				self.frame1 = wx.Frame(self, -1, 'System Call Analyzar', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+			self.menubar = wx.MenuBar()
+			self.fileMenu = wx.Menu()
+			self.fitem = self.fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+			self.menubar.Append(self.fileMenu, '&File')
+			self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+
+			self.frame1.SetMenuBar(self.menubar)
+		
+		    # self.panel for screen Through Command
+
+			self.panel1 = wx.Panel(self.frame1)
+			self.vbox11 = wx.BoxSizer(wx.VERTICAL)
+			self.hbox11 = wx.BoxSizer(wx.HORIZONTAL)
+
+			self.st1 = wx.StaticText(self.panel1, label='Enter Command : ')
+			self.st1.SetFont(self.font)
+			self.hbox11.Add(self.st1, flag=wx.RIGHT, border=200)
+
+			self.tc11 = wx.TextCtrl(self.panel1)
+			self.hbox11.Add(self.tc11, proportion=1)
+			self.vbox11.Add(self.hbox11, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+			self.vbox11.Add((-1, 10))
+
+			self.hbox12 = wx.BoxSizer(wx.HORIZONTAL)
+
+			self.st2 = wx.StaticText(self.panel1, label='Enter Filename(If Required):')
+			self.st2.SetFont(self.font)
+			self.hbox12.Add(self.st2, flag=wx.RIGHT, border=200)
+
+			self.tc12 = wx.TextCtrl(self.panel1)
+			self.hbox12.Add(self.tc12, proportion=1)
+			self.vbox11.Add(self.hbox12, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+			self.vbox11.Add((-1, 10))
+
+			self.btn11 = wx.Button(self.panel1, label='SUBMIT', size=(200, 100))
+			self.btn11.Bind(wx.EVT_BUTTON, self.OnClick11)
+			self.vbox11.Add(self.btn11, flag = wx.TOP | wx.CENTER, border=100) 
+
+			self.panel1.SetSizer(self.vbox11)
+			self.frame1.Show()
+
+	def OnQuit(self, e):
+		self.Close()
+		commands.getstatusoutput("python alldrop.py")
+
+
+	#Click on SUBMIT button
+
+	def OnClick11(self, e):
+
+		filenm=''
+		list1 = ['./a.out', 'cat', 'find', 'cksum', 'dc', 'dd', 'expand', 'factor', 'fmt', 'fold', 'head', 'nl', 'paste', 'pr', 'sort', 'split', 'su', 'sum', 'tac', 'wc','unexpand','uniq']
+		list2 = ['vi', 'firefox', 'bc', 'ed', 'fsck', 'info', 'lpc', 'passwd', 'shutdown', 'sleep','tee','top','tsort','yes']
+		cmd1 = self.tc11.GetValue()
+		cmd = cmd1.lower()
+
+		if cmd in list2:
+			if not self.frameerr:
+				self.frameerr = wx.Frame(self, -1, 'Error ', pos = (300,300), size = (500,200))
+
+			self.panelerr = wx.Panel(self.frameerr)
+			self.vboxerr = wx.BoxSizer(wx.VERTICAL)
+			self.hboxerr1 = wx.BoxSizer(wx.HORIZONTAL)
+			self.sterr = wx.StaticText(self.panelerr, label='Command NOT allowed ...')
+			self.sterr.SetFont(self.font)
+			self.hboxerr1.Add(self.sterr, flag=wx.RIGHT, border=200)
+			self.vboxerr.Add(self.hboxerr1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=15)
+			self.vboxerr.Add((-1, 10))
+			self.hboxerr2 = wx.BoxSizer(wx.HORIZONTAL)
+			self.btnok = wx.Button(self.panelerr, label='OK', size=(100, 50))
+			self.btnok.Bind(wx.EVT_BUTTON, self.Oncncl)
+			self.hboxerr2.Add(self.btnok, flag=wx.LEFT | wx.RIGHT, border=50)
+			self.vboxerr.Add(self.hboxerr2, flag=wx.CENTER | wx.BOTTOM, border=15)
+			self.vboxerr.Add((-1, 10))
+			self.panelerr.SetSizer(self.vboxerr)
+			self.frameerr.Show()
+
+		elif cmd in list1:
+			filenm = self.tc12.GetValue()
+
+			if filenm=='':
+				if not self.frameerr1:
+					self.frameerr1 = wx.Frame(self, -1, 'Error ', pos = (300,300), size = (500,200))
+				self.panelerr = wx.Panel(self.frameerr1)
+				self.hboxerr = wx.BoxSizer(wx.HORIZONTAL)
+				if cmd == 'factor':
+					self.sterr = wx.StaticText(self.panelerr, label='Enter Number whose prime factors to \n be calculated in the "File Name" text box please ...')
+				elif cmd == 'su':
+					self.sterr = wx.StaticText(self.panelerr, label='Enter the password of user in the \n text box please ...')
+				else:
+					self.sterr = wx.StaticText(self.panelerr, label='Enter File Name Please ...')
+
+				self.sterr.SetFont(self.font)
+				self.hboxerr.Add(self.sterr, flag=wx.RIGHT, border=200)
+				self.panelerr.SetSizer(self.hboxerr)
+				self.frameerr1.Show()
+
+			elif cmd == './a.out':
+				cc = 'cc '+filenm
+				commands.getoutput(cc)
+				commands.getoutput("strace -o sample.txt -tt -T -f ./a.out")
+				commands.getoutput("python parse4.py")
+				self.disp()
+
+			elif cmd == 'dd':
+				trace = 'strace -o sample.txt -tt -T -f dd if='+filenm
+				commands.getoutput(trace)
+				commands.getoutput("python parse4.py")
+				self.disp()
+
+			else:
+				self.run()
+
+		else:
+#strace: Can't stat 'abc': No such file or directory
+			strace = "strace "+cmd
+			op = commands.getstatusoutput(strace)
+			find = "strace: Can't stat '"+cmd+"': No such file or directory"
+
+			if op[1] == find:
+				if not self.frameNoFind:
+					self.frameNoFind = wx.Frame(self, -1, 'Wanning ', pos = (300,300), size = (500,200))
+				self.panelNoFind = wx.Panel(self.frameNoFind)
+				self.hboxNoFind = wx.BoxSizer(wx.HORIZONTAL)
+				self.stNoFind = wx.StaticText(self.panelNoFind, label='Specified command is invalid...\n Please Re-enter the command!!! ...')
+				self.stNoFind.SetFont(self.font)
+				self.hboxNoFind.Add(self.stNoFind, flag=wx.RIGHT, border=200)
+				self.panelNoFind.SetSizer(self.hboxNoFind)
+				self.frameNoFind.Show()
+
+			else:
+				self.run()
+
+	'''
+	elif cmd=='firefox':
+
+#		self.framefire = wx.Frame(self, -1, 'Warning ', pos = (300,300), size = (450,175))
+		if not self.framefire:
+			self.framefire = wx.Frame(self, -1, 'Warning ', pos = (300,300), size = (450,175))
+
+		self.panelfire = wx.Panel(self.framefire)
+		self.vboxfire = wx.BoxSizer(wx.VERTICAL)
+		self.hboxfire1 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.stfire = wx.StaticText(self.panelfire, label='To get better output you have to\n close most resent firefox window \nas soon as possible...\n Do you still want to continue')
+		self.stfire.SetFont(self.font)
+		self.hboxfire1.Add(self.stfire, flag=wx.RIGHT, border=200)
+
+		self.vboxfire.Add(self.hboxfire1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=25)
+		self.vboxfire.Add((-1, 10))
+		
+		self.hboxfire2 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.btnok = wx.Button(self.panelfire, label='OK', size=(100, 50))
+		self.btnok.Bind(wx.EVT_BUTTON, self.OnOK)
+		self.hboxfire2.Add(self.btnok, flag=wx.ALIGN_LEFT, border=50)
+
+		self.stfire = wx.StaticText(self.panelfire, label='            ')
+		self.hboxfire2.Add(self.stfire)
+
+		self.btncncl = wx.Button(self.panelfire, label='CANCEL', size=(100, 50))
+		self.btncncl.Bind(wx.EVT_BUTTON, self.Oncncl)
+		self.hboxfire2.Add(self.btncncl, flag=wx.ALIGN_RIGHT, border=50)
+
+		self.vboxfire.Add(self.hboxfire2, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=50)
+		self.vboxfire.Add((-1, 10))
+		self.panelfire.SetSizer(self.vboxfire)
+
+		self.framefire.Show()
+	'''
+
+	
+	#Click on OK button in firefox warning window
+
+	def OnOK(self, e):
+		commands.getoutput("strace -o sample.txt -tt -f -TT firefox")
+		commands.getstatusoutput("python fireclose.py")
+		self.framefire.Hide()
+		self.disp()
+
+	#Click on CANCEL button in firefox warning window
+	def Oncncl(self, e):
+		self.tc11.SetValue(" ")
+		self.framefire.Hide()
+		self.frameerr.Hide()
+	
+	#Parsing strace output
+	def run(self):
+		cmd1 = self.tc11.GetValue()
+		cmd = cmd1.lower()
+		filenm = self.tc12.GetValue()
+		if cmd != 'factor':
+			if filenm != '':
+				cat = "cat "+filenm
+				fileavail = commands.getstatusoutput(cat)
+				nodir = "cat: "+filenm+": No such file or directory"
+
+				if fileavail[1] == nodir:
+					self.NoDir()
+				else:
+					trace = "strace -o sample.txt -tt -f -TT "+cmd+" "+filenm
+					output = commands.getstatusoutput(trace)
+					commands.getstatusoutput("python parse4.py")
+					self.disp()
+			else:
+				trace = "strace -o sample.txt -tt -f -TT "+cmd
+				output = commands.getstatusoutput(trace)
+				commands.getstatusoutput("python parse4.py")
+				self.disp()
+
+		else:
+			trace = "strace -o sample.txt -tt -f -TT "+cmd+" "+filenm
+			output = commands.getstatusoutput(trace)
+			commands.getstatusoutput("python parse4.py")
+			self.disp()
+
+	def NoDir(self):
+		if not self.frameNoDir:
+			self.frameNoDir = wx.Frame(self, -1, 'Wanning ', pos = (300,300), size = (500,200))
+		self.panelNoDir = wx.Panel(self.frameNoDir)
+		self.hboxNoDir = wx.BoxSizer(wx.HORIZONTAL)
+		self.stNoDir = wx.StaticText(self.panelNoDir, label='Specified File is not present in this Directory...\n Please Re-enter the filename!!! ...')
+		self.stNoDir.SetFont(self.font)
+		self.hboxNoDir.Add(self.stNoDir, flag=wx.RIGHT, border=200)
+		self.panelNoDir.SetSizer(self.hboxNoDir)
+		self.frameNoDir.Show()
+
+	def OnInput(self, e):
+		self.framedisp.Hide()
+		self.framePert.Hide()
+		self.framecomp.Hide()
+		self.frameop.Hide()
+		self.frameUnfin.Hide()
+		self.frameProc.Hide()
+		self.frameCode.Hide()
+		self.frameErrana.Hide()
+		self.frameFileio.Hide()
+		self.frameSummary.Hide()
+		self.frameRead.Hide()
+		self.frameWrite.Hide()
+		self.frameAccess.Hide()
+		self.frameFstat.Hide()
+		self.frameStat.Hide()
+		self.frameLstat.Hide()
+		self.frameMmap.Hide()
+		self.frameMunmap.Hide()
+		self.frameMprotect.Hide()
+		self.frameRt_sigaction.Hide()
+		self.frameUname.Hide()
+		self.frameTime.Hide()
+		self.framePerTime.Hide()
+		self.frameErr.Hide()
+		self.framePerErr.Hide()
+		self.frameCnt.Hide()
+
+	def OnHome(self, e):
+		self.framedisp.Show()
+		self.framePert.Hide()
+		self.framecomp.Hide()
+		self.frameop.Hide()
+		self.frameUnfin.Hide()
+		self.frameProc.Hide()
+		self.frameCode.Hide()
+		self.frameErrana.Hide()
+		self.frameFileio.Hide()
+		self.frameSummary.Hide()
+		self.frameRead.Hide()
+		self.frameWrite.Hide()
+		self.frameAccess.Hide()
+		self.frameFstat.Hide()
+		self.frameStat.Hide()
+		self.frameLstat.Hide()
+		self.frameMmap.Hide()
+		self.frameMunmap.Hide()
+		self.frameMprotect.Hide()
+		self.frameRt_sigaction.Hide()
+		self.frameUname.Hide()
+		self.frameTime.Hide()
+		self.framePerTime.Hide()
+		self.frameErr.Hide()
+		self.framePerErr.Hide()
+		self.frameCnt.Hide()
+	
+	def OnPerti(self,e):
+		self.framePert.Show()
+		self.frameRead.Hide()
+		self.frameWrite.Hide()
+		self.frameAccess.Hide()
+		self.frameFstat.Hide()
+		self.frameStat.Hide()
+		self.frameLstat.Hide()
+		self.frameMmap.Hide()
+		self.frameMunmap.Hide()
+		self.frameMprotect.Hide()
+		self.frameRt_sigaction.Hide()
+		self.frameUname.Hide()
+
+	def OnCompa(self, e):
+		self.framecomp.Show()
+		self.frameTime.Hide()
+		self.framePerTime.Hide()
+		self.frameErr.Hide()
+		self.framePerErr.Hide()
+		self.frameCnt.Hide()
+
+	def disp(self):
+
+		if not self.framedisp:
+			self.framedisp = wx.Frame(self, -1, 'System Call Analyzer Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.framedisp.SetMenuBar(self.menubar)
+
+		self.paneldisp = wx.Panel(self.framedisp)
+		self.vboxdisp = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxdisp1 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Particular System Call Statistics
+
+		self.btnPert = wx.Button(self.paneldisp, label='Particular Syscall Statistics', size=(300, 100))
+		self.btnPert.Bind(wx.EVT_BUTTON, self.OnPert)
+		self.hboxdisp1.Add(self.btnPert, border=200)
+
+		self.stdisp1 = wx.StaticText(self.paneldisp, label='            ')
+		self.hboxdisp1.Add(self.stdisp1)
+
+	#Comparitive Statistics of all System Calls
+
+		self.btnComp = wx.Button(self.paneldisp, label='Comparitive Syscall Statistics', size=(300, 100))
+		self.btnComp.Bind(wx.EVT_BUTTON, self.OnComp)
+		self.hboxdisp1.Add(self.btnComp, border=200)
+
+		self.hboxdisp1.Add(self.stdisp1)
+
+	#Process Tree
+
+		self.btnProc = wx.Button(self.paneldisp, label='Process Tree', size=(300, 100))
+		self.btnProc.Bind(wx.EVT_BUTTON, self.OnProc)
+		self.hboxdisp1.Add(self.btnProc, border=200)
+
+		self.vboxdisp.Add(self.hboxdisp1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+		self.vboxdisp.Add((-1, 10))
+
+		self.hboxdisp2 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Syscall Trace
+
+		self.btnTrace = wx.Button(self.paneldisp, label='System Call and \n Signal Trace', size=(300, 100))
+		self.btnTrace.Bind(wx.EVT_BUTTON, self.OnTrace)
+		self.hboxdisp2.Add(self.btnTrace, border=200)
+
+		self.stdisp2 = wx.StaticText(self.paneldisp, label='            ')
+		self.hboxdisp2.Add(self.stdisp2)
+
+	# Unfinished Syscall
+
+		self.btnUnfin = wx.Button(self.paneldisp, label='Resumed-Unfinished \n System Calls', size=(300, 100))
+		self.btnUnfin.Bind(wx.EVT_BUTTON, self.OnUnfin)
+		self.hboxdisp2.Add(self.btnUnfin, border=200)
+
+		self.hboxdisp2.Add(self.stdisp2)
+
+	# Code Optimization
+
+		self.btnCode = wx.Button(self.paneldisp, label='Code Optimization', size=(300, 100))
+		self.btnCode.Bind(wx.EVT_BUTTON, self.OnCode)
+		self.hboxdisp2.Add(self.btnCode, border=200)
+
+		self.vboxdisp.Add(self.hboxdisp2, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+		self.vboxdisp.Add((-1, 10))
+
+		self.hboxdisp3 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#File Input/Output Statistics
+
+		self.btnFileio = wx.Button(self.paneldisp, label='File Input/Output Statistics', size=(300, 100))
+		self.btnFileio.Bind(wx.EVT_BUTTON, self.OnFileio)
+		self.hboxdisp3.Add(self.btnFileio, border=200)
+
+		self.stdisp3 = wx.StaticText(self.paneldisp, label='            ')
+		self.hboxdisp3.Add(self.stdisp3)
+
+	#Error Analysis
+
+		self.btnErrana = wx.Button(self.paneldisp, label='Error Analysis', size=(300, 100))
+		self.btnErrana.Bind(wx.EVT_BUTTON, self.OnErrana)
+		self.hboxdisp3.Add(self.btnErrana, border=200)
+
+		self.hboxdisp3.Add(self.stdisp3)
+
+	#Summary of All System Calls
+
+		self.btnSummary = wx.Button(self.paneldisp, label='Summary of all \n System Calls', size=(300, 100))
+		self.btnSummary.Bind(wx.EVT_BUTTON, self.OnSummary)
+		self.hboxdisp3.Add(self.btnSummary, border=200)
+
+		self.vboxdisp.Add(self.hboxdisp3, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+		self.vboxdisp.Add((-1, 10))
+
+		self.paneldisp.SetSizer(self.vboxdisp)
+
+		self.framedisp.Show()
+
+# Button Cliks on Output Screen
+
+	# Particular System Call Statistics
+	def OnPert(self, e):
+		if not self.framePert:
+			self.framePert = wx.Frame(self, -1, 'Particular System Call Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.framePert.SetMenuBar(self.menubar)
+
+
+		self.panelPert = wx.Panel(self.framePert)
+		self.vboxPert = wx.BoxSizer(wx.VERTICAL)
+
+	#File Structure Related System Calls
+
+		self.hboxPert1 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.stPert1 = wx.StaticText(self.panelPert, label='          *** File Structure Related System Calls *** ')
+		self.hboxPert1.Add(self.stPert1)
+
+		self.vboxPert.Add(self.hboxPert1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.hboxPert2 = wx.BoxSizer(wx.HORIZONTAL)
+
+	    # Read System Call
+
+		self.sthbox1 = wx.StaticText(self.panelPert, label='         ')
+		self.hboxPert2.Add(self.sthbox1)
+
+		self.sthbox2 = wx.StaticText(self.panelPert, label='                ')
+
+		self.btnRead = wx.Button(self.panelPert, label='Read', size=(200, 75))
+		self.btnRead.Bind(wx.EVT_BUTTON, self.OnRead)
+		self.hboxPert2.Add(self.btnRead, flag=wx.LEFT, border=30)
+
+		self.hboxPert2.Add(self.sthbox2)
+
+	    # Write System Call
+
+		self.btnWrite = wx.Button(self.panelPert, label='Write', size=(200, 75))
+		self.btnWrite.Bind(wx.EVT_BUTTON, self.OnWrite)
+		self.hboxPert2.Add(self.btnWrite, border=30)
+
+		self.hboxPert2.Add(self.sthbox2)
+
+	    # Access System Call
+
+		self.btnAccess = wx.Button(self.panelPert, label='Access', size=(200, 75))
+		self.btnAccess.Bind(wx.EVT_BUTTON, self.OnAccess)
+		self.hboxPert2.Add(self.btnAccess, border=30)
+
+		self.hboxPert2.Add(self.sthbox2)
+
+	    # Pipe System Call
+
+		self.btnPipe = wx.Button(self.panelPert, label='Pipe', size=(200, 75))
+		self.btnPipe.Bind(wx.EVT_BUTTON, self.OnPipe)
+		self.hboxPert2.Add(self.btnPipe, border=30)
+
+		self.vboxPert.Add(self.hboxPert2, flag=wx.LEFT | wx.RIGHT , border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.hboxPert3 = wx.BoxSizer(wx.HORIZONTAL)
+
+	    # Stat/Stat64 System Call
+
+		self.sthbox3 = wx.StaticText(self.panelPert, label='                ')
+		self.hboxPert3.Add(self.sthbox3)
+
+		self.btnStat = wx.Button(self.panelPert, label='Stat/Stat64', size=(200, 75))
+		self.btnStat.Bind(wx.EVT_BUTTON, self.OnStat)
+		self.hboxPert3.Add(self.btnStat, border=30)
+
+		self.hboxPert3.Add(self.sthbox3)
+
+	    # Fstat/Fstat64 System Call
+
+		self.btnFstat = wx.Button(self.panelPert, label='Fstat/Fstat64', size=(200, 75))
+		self.btnFstat.Bind(wx.EVT_BUTTON, self.OnFstat)
+		self.hboxPert3.Add(self.btnFstat, border=30)
+
+		self.hboxPert3.Add(self.sthbox3)
+
+	    # Lstat/Lstat64 System Call
+
+		self.btnLstat = wx.Button(self.panelPert, label='Lstat/Lstat64', size=(200, 75))
+		self.btnLstat.Bind(wx.EVT_BUTTON, self.OnLstat)
+		self.hboxPert3.Add(self.btnLstat, border=30)
+
+		self.vboxPert.Add(self.hboxPert3, flag=wx.LEFT | wx.RIGHT , border=30)
+		self.vboxPert.Add((-1, 10))
+
+	#Memory Related System Calls
+
+		self.hboxPert4 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.stPert4 = wx.StaticText(self.panelPert, label='          *** Memory Related System Calls *** ')
+		self.hboxPert4.Add(self.stPert4)
+
+		self.vboxPert.Add(self.hboxPert4, flag=wx.LEFT | wx.RIGHT |wx.TOP, border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.hboxPert5 = wx.BoxSizer(wx.HORIZONTAL)
+
+	    # Mmap System Call
+
+		self.sthbox5 = wx.StaticText(self.panelPert, label='                ')
+		self.hboxPert5.Add(self.sthbox5)
+
+		self.btnMmap = wx.Button(self.panelPert, label='Mmap', size=(200, 75))
+		self.btnMmap.Bind(wx.EVT_BUTTON, self.OnMmap)
+		self.hboxPert5.Add(self.btnMmap, border=30)
+
+		self.hboxPert5.Add(self.sthbox5)
+
+	    # Mprotect System Call
+
+		self.btnMprotect = wx.Button(self.panelPert, label='Mprotect', size=(200, 75))
+		self.btnMprotect.Bind(wx.EVT_BUTTON, self.OnMprotect)
+		self.hboxPert5.Add(self.btnMprotect, border=30)
+
+		self.vboxPert.Add(self.hboxPert5, flag=wx.LEFT | wx.RIGHT , border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.hboxPert5.Add(self.sthbox5)
+
+	    # Munmap System Call
+
+		self.btnMunmap = wx.Button(self.panelPert, label='Munmap', size=(200, 75))
+		self.btnMunmap.Bind(wx.EVT_BUTTON, self.OnMunmap)
+		self.hboxPert5.Add(self.btnMunmap, border=30)
+
+	#Signal Related System Calls
+
+		self.hboxPert6 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.stPert6 = wx.StaticText(self.panelPert, label='          *** Signals Related System Calls *** ')
+		self.hboxPert6.Add(self.stPert6)
+
+		self.vboxPert.Add(self.hboxPert6, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.hboxPert7 = wx.BoxSizer(wx.HORIZONTAL)
+
+	    # Rt_sigaction System Call
+
+		self.stPert7 = wx.StaticText(self.panelPert, label='                ')
+		self.hboxPert7.Add(self.stPert7)
+
+		self.btnRt_sigaction = wx.Button(self.panelPert, label='Rt_sigaction', size=(200, 75))
+		self.btnRt_sigaction.Bind(wx.EVT_BUTTON, self.OnRt_sigaction)
+		self.hboxPert7.Add(self.btnRt_sigaction, border=30)
+
+		self.vboxPert.Add(self.hboxPert7, flag=wx.LEFT | wx.RIGHT , border=30)
+		self.vboxPert.Add((-1, 10))
+
+	#System Information
+
+		self.hboxPert8 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.stPert8 = wx.StaticText(self.panelPert, label='          *** System Information *** ')
+		self.hboxPert8.Add(self.stPert8)
+
+		self.vboxPert.Add(self.hboxPert8, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.hboxPert9 = wx.BoxSizer(wx.HORIZONTAL)
+
+	    # Uname System Call
+
+		self.stPert9 = wx.StaticText(self.panelPert, label='                ')
+		self.hboxPert9.Add(self.stPert9)
+
+		self.btnUname = wx.Button(self.panelPert, label='Uname', size=(200, 75))
+		self.btnUname.Bind(wx.EVT_BUTTON, self.OnUname)
+		self.hboxPert9.Add(self.btnUname, border=30)
+		self.stPert9 = wx.StaticText(self.panelPert, label='\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t')
+		self.hboxPert9.Add(self.stPert9)
+		self.btnInfo = wx.Button(self.panelPert, label='Information', size=(150, 50))
+		self.btnInfo.Bind(wx.EVT_BUTTON, self.OnInfo)
+		self.hboxPert9.Add(self.btnInfo,flag=wx.RIGHT | wx.BOTTOM, border = 10)
+
+		self.btnGraph = wx.Button(self.panelPert, label='Graph', size=(50, 50))
+		self.btnGraph.Bind(wx.EVT_BUTTON, self.OnGraph)
+		self.hboxPert9.Add(self.btnGraph,flag=wx.RIGHT | wx.BOTTOM, border = 10)
+		self.vboxPert.Add(self.hboxPert9, flag=wx.LEFT | wx.RIGHT , border=30)
+		self.vboxPert.Add((-1, 10))
+
+		self.panelPert.SetSizer(self.vboxPert)
+		self.framePert.Show()
+
+
+	def OnGraph(self, e):        
+		if not self.frameGraph:
+			self.frameGraph = wx.Frame(self, -1, 'Graph ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameGraph.SetMenuBar(self.menubar)
+
+		self.panelGraph = wx.Panel(self.frameGraph)
+
+		self.vboxGraph = wx.BoxSizer(wx.VERTICAL)
+
+		self.imgGraph = wx.EmptyImage(800,500)
+		self.imgGraphCtrl = wx.StaticBitmap(self.panelGraph, wx.ID_ANY, wx.BitmapFromImage(self.imgGraph))
+		commands.getoutput("python pread.py")
+		self.persyscallstat('read_tab')
+		filepath = "Graphs/readgraph.png"
+		self.imgGraph = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgGraphCtrl.SetBitmap(wx.BitmapFromImage(self.imgGraph))
+
+		self.vboxGraph.Add(self.imgGraphCtrl, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=5)
+		self.vboxGraph.Add((-1, 10))
+
+		self.panelGraph.SetSizer(self.vboxGraph)		        
+		self.frameGraph.Show()
+
+
+
+	# Comparitive Statistics
+ 
+	def OnComp(self, e):        
+		if not self.framecomp:
+			self.framecomp = wx.Frame(self, -1, 'Comparative Statistics of All System Calls ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.framecomp.SetMenuBar(self.menubar)
+
+		self.panelcomp = wx.Panel(self.framecomp)
+		self.vboxcomp = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxcomp1 = wx.BoxSizer(wx.HORIZONTAL)
+
+	#Time Consumed By all System Call
+
+		self.stcomp1 = wx.StaticText(self.panelcomp, label='                  ')
+		self.hboxcomp1.Add(self.stcomp1)
+
+		self.btnTime = wx.Button(self.panelcomp, label='Time Consumption of Syscalls', size=(250, 100))
+		self.btnTime.Bind(wx.EVT_BUTTON, self.OnTime)
+		self.hboxcomp1.Add(self.btnTime, border=150)
+
+		self.hboxcomp1.Add(self.stcomp1)
+
+	# Percentage Time Consumption of all System Calls
+
+		self.btnPerTime = wx.Button(self.panelcomp, label='Percentage Time Consumption \n of Syscalls', size=(250, 100))
+		self.btnPerTime.Bind(wx.EVT_BUTTON, self.OnPerTime)
+		self.hboxcomp1.Add(self.btnPerTime, border=150)
+
+		self.hboxcomp1.Add(self.stcomp1)
+
+	#System Call Count
+		self.btnCnt = wx.Button(self.panelcomp, label='System Call Count', size=(250, 100))
+		self.btnCnt.Bind(wx.EVT_BUTTON, self.OnCnt)
+		self.hboxcomp1.Add(self.btnCnt, border=100)
+
+		self.vboxcomp.Add(self.hboxcomp1, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=200)
+		self.vboxcomp.Add((-1, 10))
+
+		self.hboxcomp2 = wx.BoxSizer(wx.HORIZONTAL)
+
+	# Errors in All System Calls
+
+		self.stcomp2 = wx.StaticText(self.panelcomp, label='                                                                ')
+		self.hboxcomp2.Add(self.stcomp2)
+
+		self.btnErr = wx.Button(self.panelcomp, label='System Call Errors', size=(250, 100))
+		self.btnErr.Bind(wx.EVT_BUTTON, self.OnErr)
+		self.hboxcomp2.Add(self.btnErr, border=150)
+
+		self.hboxcomp2.Add(self.stcomp2)
+
+	# Percentage Errors in All System Calls
+
+		self.btnPerErr = wx.Button(self.panelcomp, label='Percentage Erors in System Calls', size=(250, 100))
+		self.btnPerErr.Bind(wx.EVT_BUTTON, self.OnPerErr)
+		self.hboxcomp2.Add(self.btnPerErr, border=150)
+
+		self.vboxcomp.Add(self.hboxcomp2, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=100)
+		self.vboxcomp.Add((-1, 10))
+
+		self.panelcomp.SetSizer(self.vboxcomp)
+
+		self.framecomp.Show()
+
+# Tracing of all System Calls and Signals
+
+	def OnTrace(self, e):        
+		if not self.frameop:
+			self.frameop = wx.Frame(self, -1, 'System Call and Signal Trace Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameop.SetMenuBar(self.menubar)
+		self.vboxop = wx.BoxSizer(wx.VERTICAL)
+
+		self.panelop = wx.Panel(self.frameop)
+		self.vboxop = wx.BoxSizer(wx.VERTICAL)
+		self.hboxop = wx.BoxSizer(wx.HORIZONTAL)
+		self.btnSysop = wx.Button(self.panelop, label='System Call Trace', size=(400, 150))
+		self.btnSysop.Bind(wx.EVT_BUTTON, self.OnSysTrace)
+		self.hboxop.Add(self.btnSysop, flag=wx.LEFT, border=150)
+		self.btnSigop = wx.Button(self.panelop, label='Signals Trace', size=(400, 150))
+		self.btnSigop.Bind(wx.EVT_BUTTON, self.OnSigTrace)
+		self.hboxop.Add(self.btnSigop, flag=wx.LEFT, border=150)
+		self.vboxop.Add(self.hboxop, flag=wx.TOP, border=200)
+
+		self.panelop.SetSizer(self.vboxop)		        
+		self.frameop.Show()
+
+# Tracing of Unfinished and Resumed System Calls
+
+	def OnUnfin(self, e):        
+		if not self.frameUnfin:
+			self.frameUnfin = wx.Frame(self, -1, 'Unfinished And Resumed Calls Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameUnfin.SetMenuBar(self.menubar)
+
+		self.panelUnfin = wx.Panel(self.frameUnfin)
+		self.vboxUnfin = wx.BoxSizer(wx.VERTICAL)
+		self.hboxUnfin = wx.BoxSizer(wx.HORIZONTAL)
+		self.btnUnfin = wx.Button(self.panelUnfin, label='Unfinihed System Calls', size=(400, 150))
+		self.btnUnfin.Bind(wx.EVT_BUTTON, self.OnUnfini)
+		self.hboxUnfin.Add(self.btnUnfin, flag=wx.LEFT, border=150)
+		self.btnResumed = wx.Button(self.panelUnfin, label='Resumed System Calls', size=(400, 150))
+		self.btnResumed.Bind(wx.EVT_BUTTON, self.OnResumed)
+		self.hboxUnfin.Add(self.btnResumed, flag=wx.LEFT, border=150)
+		self.vboxUnfin.Add(self.hboxUnfin, flag=wx.TOP, border=200)
+
+		self.panelUnfin.SetSizer(self.vboxUnfin)		        
+		self.frameUnfin.Show()
+
+# Process Tree Of System Calls
+
+	def OnProc(self, e):
+		commands.getoutput("python pt2.py")        
+		commands.getoutput("python tree3.py")		
+
+# Code Optimization
+
+	def OnCode(self, e):        
+		if not self.frameCode:
+			self.frameCode = wx.Frame(self, -1, 'Code Optimization', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameCode.SetMenuBar(self.menubar)
+
+		self.panelCode = wx.Panel(self.frameCode)
+		self.vboxCode = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxCode1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stCode1 = wx.StaticText(self.panelCode, label='   1.  Please avoide using "\ n"(New Line Charector) whenever possible. (Instead \n \t  use "\ t"(Tab) if required) ')
+		self.stCode1.SetFont(self.font)
+		self.hboxCode1.Add(self.stCode1, flag=wx.LEFT, border=50)
+		self.stCode11 = wx.StaticText(self.panelCode, label='      \t\t\t\t\t')
+		self.stCode11.SetFont(self.font)
+		self.hboxCode1.Add(self.stCode11, flag=wx.CENTER, border=50)
+		self.btnrefer1 = wx.Button(self.panelCode, label='REFER', size=(75, 35))
+		self.btnrefer1.Bind(wx.EVT_BUTTON, self.OnRefer1)
+		self.hboxCode1.Add(self.btnrefer1, flag=wx.RIGHT, border=50)
+		self.vboxCode.Add(self.hboxCode1, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxCode.Add((-1, 10))
+
+		self.hboxCode2 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stCode2 = wx.StaticText(self.panelCode, label='   2.  Please avoide using "fflush()" function whenever possible ')
+		self.stCode2.SetFont(self.font)
+		self.hboxCode2.Add(self.stCode2, flag=wx.LEFT, border=50)
+		self.stCode22 = wx.StaticText(self.panelCode, label='     \t\t\t\t\t\t\t\t')
+		self.stCode22.SetFont(self.font)
+		self.hboxCode2.Add(self.stCode22, flag=wx.CENTER, border=50)
+		self.btnrefer2 = wx.Button(self.panelCode, label='REFER', size=(75, 35))
+		self.btnrefer2.Bind(wx.EVT_BUTTON, self.OnRefer2)
+		self.hboxCode2.Add(self.btnrefer2, flag=wx.RIGHT, border=50)
+		self.vboxCode.Add(self.hboxCode2, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxCode.Add((-1, 10))
+
+		self.hboxCode3 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stCode3 = wx.StaticText(self.panelCode, label='   3.  Generally "Pass By Reference" is better than "Pass By Value" ')
+		self.stCode3.SetFont(self.font)
+		self.hboxCode3.Add(self.stCode3, flag=wx.LEFT, border=50)
+		self.stCode33 = wx.StaticText(self.panelCode, label='\t\t\t\t\t\t')
+		self.stCode33.SetFont(self.font)
+		self.hboxCode3.Add(self.stCode33, flag=wx.CENTER, border=50)
+		self.btnrefer3 = wx.Button(self.panelCode, label='REFER', size=(75, 35))
+		self.btnrefer3.Bind(wx.EVT_BUTTON, self.OnRefer3)
+		self.hboxCode3.Add(self.btnrefer3, flag=wx.RIGHT, border=50)
+		self.vboxCode.Add(self.hboxCode3, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxCode.Add((-1, 10))
+
+		self.hboxCode4 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stCode4 = wx.StaticText(self.panelCode, label='   4.  While performing "File Operations" is is better to use array or \n \t  string( E.g. gets() ) rather than using single charector( E.g. getch() ) ')
+		self.stCode4.SetFont(self.font)
+		self.hboxCode4.Add(self.stCode4, flag=wx.LEFT, border=50)
+		self.stCode44 = wx.StaticText(self.panelCode, label=' \t\t\t\t\t\t')
+		self.stCode44.SetFont(self.font)
+		self.hboxCode4.Add(self.stCode44, flag=wx.CENTER, border=50)
+		self.btnrefer4 = wx.Button(self.panelCode, label='REFER', size=(75, 35))
+		self.btnrefer4.Bind(wx.EVT_BUTTON, self.OnRefer4)
+		self.hboxCode4.Add(self.btnrefer4, flag=wx.RIGHT, border=50)
+		self.vboxCode.Add(self.hboxCode4, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxCode.Add((-1, 10))
+
+		self.hboxCode5 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stCode5 = wx.StaticText(self.panelCode, label='   5.  Generally "While" loops gives Better performance than "For" loop ')
+		self.stCode5.SetFont(self.font)
+		self.hboxCode5.Add(self.stCode5, flag=wx.LEFT, border=50)
+		self.stCode55 = wx.StaticText(self.panelCode, label='\t\t\t')
+		self.stCode55.SetFont(self.font)
+		self.hboxCode5.Add(self.stCode55, flag=wx.CENTER, border=50)
+		self.btnrefer5 = wx.Button(self.panelCode, label='REFER', size=(75, 35))
+		self.btnrefer5.Bind(wx.EVT_BUTTON, self.OnRefer5)
+		self.hboxCode5.Add(self.btnrefer5, flag=wx.RIGHT, border=50)
+		self.vboxCode.Add(self.hboxCode5, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxCode.Add((-1, 10))
+
+		self.hboxCode6 = wx.BoxSizer(wx.HORIZONTAL)
+		self.btntest = wx.Button(self.panelCode, label='Test Your Program', size=(150, 70))
+		self.btntest.Bind(wx.EVT_BUTTON, self.OnTest)
+		self.hboxCode6.Add(self.btntest, flag=wx.LEFT, border=250)
+
+		self.stCode6 = wx.StaticText(self.panelCode, label='\t\t\t\t\t\t\t\t\t\t\t\t')
+		self.stCode6.SetFont(self.font)
+		self.hboxCode6.Add(self.stCode6, flag=wx.CENTER, border=150)
+
+		self.btnhints = wx.Button(self.panelCode, label='Some More Hints', size=(150, 70))
+		self.btnhints.Bind(wx.EVT_BUTTON, self.OnHints)
+		self.hboxCode6.Add(self.btnhints, flag=wx.RIGHT, border=150)
+
+		self.vboxCode.Add(self.hboxCode6, flag=wx.EXPAND | wx.TOP, border=50)
+		self.vboxCode.Add((-1, 10))
+
+		self.panelCode.SetSizer(self.vboxCode)		        
+		self.frameCode.Show()
+
+# File Input/Output Statistics
+
+	def OnFileio(self, e):        
+		if not self.frameFileio:
+			self.frameFileio = wx.Frame(self, -1, 'File Input/Output Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameFileio.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python fileio.py")
+		name = "fileio_tab"		
+		self.frameFileio = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameFileio.Show()
+
+# Errana Of All System Calls
+	def OnErrana(self, e):        
+		if not self.frameErrana:
+			self.frameErrana = wx.Frame(self, -1, 'Error Analysis', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameErrana.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python errana.py")
+		name = "errors_tab"		
+		self.frameErrana = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameErrana.Show()
+
+	# Summary Of All System Calls
+
+	def OnSummary(self, e):        
+		if not self.frameSummary:
+			self.frameSummary = wx.Frame(self, -1, 'Summary of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameSummary.SetMenuBar(self.menubar)
+		commands.getstatusoutput("python summary.py")
+		name = "summary_tab"
+		self.frameSummary = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+
+		self.frameSummary.Show()
+
+	def OnRead(self, e):
+
+		if not self.frameRead:
+			self.frameRead = wx.Frame(self, -1, 'Perticular System Call Statistics : Read', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameRead.SetMenuBar(self.menubar)
+
+		self.panelRead = wx.Panel(self.frameRead)
+
+		commands.getstatusoutput("python pRead.py")
+
+		self.hboxRead = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxRead1 = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxRead11 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRead11 = wx.StaticText(self.panelRead, label='Read Graph')
+		self.stRead11.SetFont(self.font)
+		self.hboxRead11.Add(self.stRead11, flag=wx.CENTER | wx.TOP, border=5)
+		self.vboxRead1.Add(self.hboxRead11, flag=wx.EXPAND | wx.CENTER , border=10)
+		self.vboxRead1.Add((-1, 10))
+
+		self.hboxRead12 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.imgRead = wx.EmptyImage(800,500)
+		self.imgReadCtrl = wx.StaticBitmap(self.panelRead, wx.ID_ANY, wx.BitmapFromImage(self.imgRead))
+
+		#self.persyscallstat('Read_tab')
+		commands.getoutput("python persyscall.py")
+		filepath = "readgraph.png"
+		self.imgRead = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReadCtrl.SetBitmap(wx.BitmapFromImage(self.imgRead))
+
+		self.hboxRead12.Add(self.imgReadCtrl, flag=wx.EXPAND | wx.CENTER , border=20)
+		self.vboxRead1.Add(self.hboxRead12, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=5)
+		self.vboxRead1.Add((-1, 10))
+
+		self.hboxRead.Add(self.vboxRead1, flag=wx.LEFT | wx.TOP, border=20)
+
+		self.vboxRead3 = wx.BoxSizer(wx.VERTICAL)
+
+		self.stRead3 = wx.StaticText(self.panelRead, label='\t')
+		self.stRead3.SetFont(self.font)
+
+		self.vboxRead3.Add(self.stRead3, flag=wx.EXPAND | wx.CENTER , border=20)
+		self.vboxRead3.Add((-1, 10))
+
+		self.hboxRead.Add(self.vboxRead3, flag=wx.CENTER | wx.TOP, border=20)
+
+		self.vboxRead2 = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxRead23 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRead23 = wx.StaticText(self.panelRead, label='TITLE')
+		self.stRead23.SetFont(self.font)
+		self.hboxRead23.Add(self.stRead23, flag=wx.CENTER)
+		self.vboxRead2.Add(self.hboxRead23, flag=wx.EXPAND | wx.CENTER , border=5)
+		self.vboxRead2.Add((-1, 10))
+
+		self.hboxRead21 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRead21 = wx.TextCtrl(self.panelRead, wx.ID_ANY, size=(400,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRead21.SetFont(self.font)
+		self.tcRead21.SetValue(" Put Ur Contents here jyo ")
+		self.hboxRead21.Add(self.tcRead21, flag=wx.TOP | wx.RIGHT)
+		self.vboxRead2.Add(self.hboxRead21, flag=wx.CENTER | wx.TOP | wx.RIGHT, border=20)
+		self.vboxRead2.Add((-1, 10))
+
+		self.hboxRead24 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRead24 = wx.StaticText(self.panelRead, label='TITLE')
+		self.stRead24.SetFont(self.font)
+		self.hboxRead24.Add(self.stRead24, flag=wx.CENTER)
+		self.vboxRead2.Add(self.hboxRead24, flag=wx.EXPAND | wx.CENTER , border=5)
+		self.vboxRead2.Add((-1, 10))
+
+		self.hboxRead22 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.tcRead22 = wx.TextCtrl(self.panelRead, wx.ID_ANY, size=(400,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRead22.SetFont(self.font)
+		self.tcRead22.SetValue(" Put Ur Contents here jyo ")
+		self.hboxRead22.Add(self.tcRead22, flag=wx.TOP | wx.RIGHT)
+
+		self.vboxRead2.Add(self.hboxRead22, flag=wx.CENTER | wx.BOTTOM | wx.RIGHT, border=20)
+		self.vboxRead2.Add((-1, 10))
+
+		self.hboxRead.Add(self.vboxRead2, flag=wx.TOP | wx.RIGHT, border=20)
+
+		self.panelRead.SetSizer(self.hboxRead)		        
+		self.frameRead.Show()
+
+	# Write System Call
+
+	def OnWrite(self, e):        
+		if not self.frameWrite:
+			self.frameWrite = wx.Frame(self, -1, 'Perticular System Call Statistics : Write', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameWrite.SetMenuBar(self.menubar)
+
+		self.panelWrite = wx.Panel(self.frameWrite)
+
+		commands.getstatusoutput("python pWrite.py")
+
+		self.hboxWrite = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxWrite1 = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxWrite11 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stWrite11 = wx.StaticText(self.panelWrite, label='Read Graph')
+		self.stWrite11.SetFont(self.font)
+		self.hboxWrite11.Add(self.stWrite11, flag=wx.CENTER | wx.TOP, border=5)
+		self.vboxWrite1.Add(self.hboxWrite11, flag=wx.EXPAND | wx.CENTER , border=10)
+		self.vboxWrite1.Add((-1, 10))
+
+		self.hboxWrite12 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.imgWrite = wx.EmptyImage(800,500)
+		self.imgWriteCtrl = wx.StaticBitmap(self.panelWrite, wx.ID_ANY, wx.BitmapFromImage(self.imgWrite))
+
+		#self.persyscallstat('Write_tab')
+		filepath = "Graphs/readgraph.png"
+		self.imgWrite = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgWriteCtrl.SetBitmap(wx.BitmapFromImage(self.imgWrite))
+
+		self.hboxWrite12.Add(self.imgWriteCtrl, flag=wx.EXPAND | wx.CENTER , border=20)
+		self.vboxWrite1.Add(self.hboxWrite12, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=5)
+		self.vboxWrite1.Add((-1, 10))
+
+		self.hboxWrite.Add(self.vboxWrite1, flag=wx.LEFT | wx.TOP, border=20)
+
+		self.vboxWrite3 = wx.BoxSizer(wx.VERTICAL)
+
+		self.stWrite3 = wx.StaticText(self.panelWrite, label='\t')
+		self.stWrite3.SetFont(self.font)
+
+		self.vboxWrite3.Add(self.stWrite3, flag=wx.EXPAND | wx.CENTER , border=20)
+		self.vboxWrite3.Add((-1, 10))
+
+		self.hboxWrite.Add(self.vboxWrite3, flag=wx.CENTER | wx.TOP, border=20)
+
+		self.vboxWrite2 = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxWrite23 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stWrite23 = wx.StaticText(self.panelWrite, label='TITLE')
+		self.stWrite23.SetFont(self.font)
+		self.hboxWrite23.Add(self.stWrite23, flag=wx.CENTER)
+		self.vboxWrite2.Add(self.hboxWrite23, flag=wx.EXPAND | wx.CENTER , border=5)
+		self.vboxWrite2.Add((-1, 10))
+
+		self.hboxWrite21 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcWrite21 = wx.TextCtrl(self.panelWrite, wx.ID_ANY, size=(400,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcWrite21.SetFont(self.font)
+		self.tcWrite21.SetValue(" Put Ur Contents here jyo ")
+		self.hboxWrite21.Add(self.tcWrite21, flag=wx.TOP | wx.RIGHT)
+		self.vboxWrite2.Add(self.hboxWrite21, flag=wx.CENTER | wx.TOP | wx.RIGHT, border=20)
+		self.vboxWrite2.Add((-1, 10))
+
+		self.hboxWrite24 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stWrite24 = wx.StaticText(self.panelWrite, label='TITLE')
+		self.stWrite24.SetFont(self.font)
+		self.hboxWrite24.Add(self.stWrite24, flag=wx.CENTER)
+		self.vboxWrite2.Add(self.hboxWrite24, flag=wx.EXPAND | wx.CENTER , border=5)
+		self.vboxWrite2.Add((-1, 10))
+
+		self.hboxWrite22 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.tcWrite22 = wx.TextCtrl(self.panelWrite, wx.ID_ANY, size=(400,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcWrite22.SetFont(self.font)
+		self.tcWrite22.SetValue(" Put Ur Contents here jyo ")
+		self.hboxWrite22.Add(self.tcWrite22, flag=wx.TOP | wx.RIGHT)
+
+		self.vboxWrite2.Add(self.hboxWrite22, flag=wx.CENTER | wx.BOTTOM | wx.RIGHT, border=20)
+		self.vboxWrite2.Add((-1, 10))
+
+		self.hboxWrite.Add(self.vboxWrite2, flag=wx.TOP | wx.RIGHT, border=20)
+
+		self.panelWrite.SetSizer(self.hboxWrite)		        
+		self.frameWrite.Show()
+
+		# Access System Call
+
+	def OnAccess(self, e):        
+		if not self.frameAccess:
+			self.frameAccess = wx.Frame(self, -1, 'Perticular System Call Statistics : ACCESS', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameAccess.SetMenuBar(self.menubar)
+		commands.getstatusoutput("python paccess.py")
+		name = 'access_tab'		
+		self.frameAccess = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameAccess.Show()
+
+		# Pipe System Call
+	def OnPipe(self, e):        
+		if not self.framePipe:
+			self.framePipe = wx.Frame(self, -1, 'Perticular System Call Statistics : Pipe', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.framePipe.SetMenuBar(self.menubar)
+		commands.getstatusoutput("python ppipe.py")
+		name = 'pipe_tab'		
+		self.framePipe = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.framePipe.Show()
+
+	# Fstat System Call
+
+	def OnFstat(self, e):        
+		if not self.frameFstat:
+			self.frameFstat = wx.Frame(self, -1, 'Perticular System Call Statistics : FSTAT', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_HOME, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameFstat.SetMenuBar(self.menubar)
+	
+		commands.getstatusoutput("python pfstat.py")
+		name = 'fstat_tab'		
+		self.frameFstat = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameFstat.Show()
+
+		# Stat System Call
+
+	def OnStat(self, e):        
+		if not self.frameStat:
+			self.frameStat = wx.Frame(self, -1, 'Perticular System Call Statistics : STAT', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameStat.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python pstat.py")
+		name = 'stat_tab'		
+		self.frameStat = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameStat.Show()
+
+		# Lstat System Call
+
+	def OnLstat(self, e):        
+		if not self.frameLstat:
+			self.frameLstat = wx.Frame(self, -1, 'Perticular System Call Statistics : Lstat', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameLstat.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python plstat.py")
+		name = 'lstat_tab'		
+		self.frameLstat = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameLstat.Show()
+
+		# Mmap System Call
+
+	def OnMmap(self, e):        
+		if not self.frameMmap:
+			self.frameMmap = wx.Frame(self, -1, 'Perticular System Call Statistics : READ', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameMmap.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python pmmap.py")
+		name = 'mmap_tab'		
+		self.frameMmap = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameMmap.Show()
+
+		# Mprotect System Call
+
+	def OnMprotect(self, e):        
+		if not self.frameMprotect:
+			self.frameMprotect = wx.Frame(self, -1, 'Perticular System Call Statistics : MPROTECT', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameMprotect.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python pmprotect.py")
+		name = 'mprotect_tab'		
+		self.frameMprotect = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameMprotect.Show()
+
+		# Munmap System Call
+	
+	def OnMunmap(self, e):        
+		if not self.frameMunmap:
+			self.frameMunmap = wx.Frame(self, -1, 'Particular System Call Statistics : MUNMAP', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameMunmap.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python pmunmap.py")
+		name = 'munmap_tab'		
+		self.frameMunmap = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameMunmap.Show()
+
+		# Rt_sigaction System Call
+
+	def OnRt_sigaction(self, e):        
+		if not self.frameRt_sigaction:
+			self.frameRt_sigcation = wx.Frame(self, -1, 'Perticular System Call Statistics : RT_SIGACTION', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameRt_sigaction.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python sigaction1.py")
+		name = 'rt_sigaction_tab'		
+		self.frameRt_sigaction = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameRt_sigaction.Show()
+
+		# Uname System Call
+	def OnUname(self, e):        
+		if not self.frameUname:
+			self.frameUname = wx.Frame(self, -1, 'Perticular System Call Statistics : UNAME', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_PERT, 'Particular', 'Particular Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnPerti, self.fitem3)
+		self.frameUname.SetMenuBar(self.menubar)
+
+		commands.getstatusoutput("python punam.py")
+		name = 'uname_tab'		
+		self.frameUname = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameUname.Show()
+
+# Information of All System Calls
+
+	def OnInfo(self, e):        
+		if not self.frameInfo:
+			self.frameInfo = wx.Frame(self, -1, 'Information of All System Calls in Particular Statistics', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameInfo.SetMenuBar(self.menubar)
+
+		self.panelInfo = wx.Panel(self.frameInfo)
+		self.vboxInfo = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxInfo1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcInfo1 = wx.TextCtrl(self.panelInfo, wx.ID_ANY, size=(1200,600), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcInfo1.SetFont(self.font)
+		self.tcInfo1.AppendText("   1. Read     : \n\t\t Structure: ssize_t read(int fd, void *buf, size_t count); \n\t\t Read system call reads data, in bytes as specified by the caller, from the file specified in terms of fid and stores then into a buffer supplied \t\t\t by the calling process.\n\n")
+
+		self.tcInfo1.AppendText("   2. Write    : \n\t\t Structure: size_t write(int fd, const void *buf, size_t nbytes); \n\t\t Write system call writes data, in bytes as specified by the caller, from a buffer declared by the user in the program and then writes it into \t\t\t the file specified in terms of fid supplied by the calling process.\n\n")
+
+		self.tcInfo1.AppendText("   3. Access   : \n\t\t Structure: int access(const char *pathname, int mode);\n\t\t The access system call determines whether the calling process has access permission to a file. It can check any combination of read, write, \t\t\t and execute permission, and it can also check for a file's existence.\n\n")
+
+		self.tcInfo1.AppendText("   4. Fstat/Fstat64   : \n\t\t Structure: int fstat(int fd, struct stat *buf);\n\t\t The fstat system call takes a file descriptor as argument and returns attributes of the file that it identifies in a struct stat structure. While \t\t\t fstat64 return attributes in a struct stat64 structure, which represents file sizes with a 64-bit type, allowing the functions to work on files \t\t\t 2 GB and larger.\n\n")
+
+		self.tcInfo1.AppendText("   5. Stat/Stat64   : \n\t\t Structure: int stat(const char *path, struct stat *buf);\n\t\t The stat system call take a filename as argument and returns attributes of the file. If the file name is a symbolic link, it returns attributes \t\t of the eventual target of the link. While stat64 return attributes in a struct stat64 structure, which represents file sizes with a 64-bit \n\t\t type, allowing the functions to work on files 2 GB and larger.\n\n")
+
+		self.tcInfo1.AppendText("   6. Lstat/Lstat64   : \n\t\t Structure: int lstat(const char *path, struct stat *buf);\n\t\t The lstat functions take a filename as argument and returns attributes of the file. If the file name is a symbolic link, it returns attributes of \t\t\t the link itself. While ltat64 return attributes in a struct stat64 structure, which represents file sizes with a 64-bit type, allowing the \t\t\t functions to work on files 2 GB and larger.\n\n")
+
+		self.tcInfo1.AppendText("   7. Mprotect   : \n\t\t Structure: int mprotect(const void *addr, size_t len, int prot);\n\t\t The system call mprotect specifies the desired protection for the memory page(s) containing part or all of the interval [addr,addr+len-1]. If \t\t\t an access is disallowed by the protection given it, the program receives a SIGSEGV.\n\n")
+
+		self.tcInfo1.AppendText("   8. Munmap   : \n\t\t Structure: int munmap(void *start, size_t length);\n\t\t The munmap system call deletes the mappings for the specified address range, and causes further references to addresses within the range \t\t\t to generate invalid memory references.\n\n")
+
+		self.tcInfo1.AppendText("   9. Mmap   : \n\t\t Structure: void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);\n\t\t mmap asks the kernel to map len bytes of the object represented by the file descriptorfd, starting at offsetbytes into the file, into memory. \t\t\t That maps files or devices into memory. It is a method of memory-mapped file I/O.It used to map a file into memory so that then you can \t\t\t read and/or write the data in the file by accessing memory - no need for file I/O directly.\n\n")
+
+		self.tcInfo1.AppendText("   10. Rt_sigaction   : \n\t\t Structure: int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);\n\t\t The sigaction system call is used to change the action taken by a process on receipt of a specific signal. system call allows users to specify \t\t\t an action for a signal; of course, if no signal action is defined, the kernel executes the default action associated with the delivered signal.\n\n")
+
+		self.tcInfo1.AppendText("   11. Uname   : \n\t\tThe uname system call gives informatio about System.\n\n")
+
+		self.hboxInfo1.Add(self.tcInfo1, flag=wx.LEFT, border=50)
+		self.vboxInfo.Add(self.hboxInfo1, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxInfo.Add((-1, 10))
+
+		self.panelInfo.SetSizer(self.vboxInfo)		        
+		self.frameInfo.Show()
+
+	# Comparitive Statistics
+
+		# Time Graph
+
+	def OnTime(self, e):
+		if not self.frameTime:
+			self.frameTime = wx.Frame(self, -1, 'Time Consumption of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_COMP, 'Comparative', 'Comparative Study of Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnCompa, self.fitem3)
+		self.frameTime.SetMenuBar(self.menubar)
+
+		self.panelTime = wx.Panel(self.frameTime)
+
+		self.vboxTime = wx.BoxSizer(wx.VERTICAL)
+	
+		self.PhotoMaxSize = 400
+		self.imgtime = wx.EmptyImage(800,400)
+		self.imgtimeCtrl = wx.StaticBitmap(self.panelTime, wx.ID_ANY, wx.BitmapFromImage(self.imgtime))
+
+		filepath = "Graphs/pie.png"
+		self.imgtime = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		'''
+		# scale the image, preserving the aspect ratio
+		W = self.imgtime.GetWidth()
+		H = self.imgtime.GetHeight()
+
+	
+		if W > H:
+		    NewW = self.PhotoMaxSize
+		    NewH = self.PhotoMaxSize * H / W
+		else:
+		    NewH = self.PhotoMaxSize
+		    NewW = self.PhotoMaxSize * W / H
+
+		self.imgtime = self.imgtime.Scale(NewW,NewH)
+		''' 
+		self.imgtimeCtrl.SetBitmap(wx.BitmapFromImage(self.imgtime))
+
+		self.vboxTime.Add(self.imgtimeCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxTime.Add((-1, 10))
+
+		self.tcTime = wx.TextCtrl(self.panelTime, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcTime.AppendText("The maximum time was Consumed by System Call: \t")
+	
+		commands.getstatusoutput("python ctime.py")
+		name = 'time_tab'
+
+		self.vboxTime.Add(self.tcTime, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxTime.Add((-1, 10))
+
+		self.panelTime.SetSizer(self.vboxTime)
+		self.frameTime.Show()
+
+		# Percentage Time Graph
+
+	def OnPerTime(self, e):        
+		if not self.framePerTime:
+			self.framePerTime = wx.Frame(self, -1, 'Percentage Time Consumption of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_COMP, 'Comparative', 'Comparative Study of Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnCompa, self.fitem3)
+		self.framePerTime.SetMenuBar(self.menubar)
+
+		self.panelPerTime = wx.Panel(self.framePerTime)
+
+		self.vboxPerTime = wx.BoxSizer(wx.VERTICAL)
+	
+		self.imgPerTime = wx.EmptyImage(800,400)
+		self.imgPerTimeCtrl = wx.StaticBitmap(self.panelPerTime, wx.ID_ANY, wx.BitmapFromImage(self.imgPerTime))
+
+		filepath = "Graphs/pie.png"
+		self.imgPerTime = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgPerTimeCtrl.SetBitmap(wx.BitmapFromImage(self.imgPerTime))
+
+		self.vboxPerTime.Add(self.imgPerTimeCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxPerTime.Add((-1, 10))
+
+		self.tcPerTime = wx.TextCtrl(self.panelPerTime, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcPerTime.AppendText("The maximum PerTime was Consumed by System Call: \t")
+	
+		commands.getstatusoutput("python ctime_per.py")
+		name = 'pertime_tab'
+
+		self.vboxPerTime.Add(self.tcPerTime, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxPerTime.Add((-1, 10))
+
+		self.panelPerTime.SetSizer(self.vboxPerTime)
+				
+		self.framePerTime.Show()
+
+		# Error Graph
+
+	def OnErr(self, e):        
+		if not self.frameErr:
+			self.frameErr = wx.Frame(self, -1, 'Errors in All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_COMP, 'Comparative', 'Comparative Study of Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnCompa, self.fitem3)
+		self.frameErr.SetMenuBar(self.menubar)
+
+		self.panelErr = wx.Panel(self.frameErr)
+
+		self.vboxErr = wx.BoxSizer(wx.VERTICAL)
+
+		self.imgErr = wx.EmptyImage(800,400)
+		self.imgErrCtrl = wx.StaticBitmap(self.panelErr, wx.ID_ANY, wx.BitmapFromImage(self.imgErr))
+
+		filepath = "Graphs/pie.png"
+		self.imgErr = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgErrCtrl.SetBitmap(wx.BitmapFromImage(self.imgErr))
+
+		self.vboxErr.Add(self.imgErrCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxErr.Add((-1, 10))
+
+		self.tcErr = wx.TextCtrl(self.panelErr, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcErr.AppendText("The maximum Errors were occured in System Call: \t")
+
+		commands.getstatusoutput("python cerror.py")
+		name = 'error_tab'
+
+		self.vboxErr.Add(self.tcErr, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxErr.Add((-1, 10))
+
+		self.panelErr.SetSizer(self.vboxErr)
+			
+		self.frameErr.Show()
+
+	# Percentage of Errors of system calls
+	def OnPerErr(self, e):        
+		if not self.framePerErr:
+			self.framePerErr = wx.Frame(self, -1, 'Time Consumption of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_COMP, 'Comparative', 'Comparative Study of Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnCompa, self.fitem3)
+		self.framePerErr.SetMenuBar(self.menubar)
+
+		self.panelPerErr = wx.Panel(self.framePerErr)
+
+		self.vboxPerErr = wx.BoxSizer(wx.VERTICAL)
+	
+		self.imgPerErr = wx.EmptyImage(800,400)
+		self.imgPerErrCtrl = wx.StaticBitmap(self.panelPerErr, wx.ID_ANY, wx.BitmapFromImage(self.imgPerErr))
+
+		filepath = "Graphs/pie.png"
+		self.imgPerErr = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgPerErrCtrl.SetBitmap(wx.BitmapFromImage(self.imgPerErr))
+
+		self.vboxPerErr.Add(self.imgPerErrCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxPerErr.Add((-1, 10))
+
+		self.tcPerErr = wx.TextCtrl(self.panelPerErr, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcPerErr.AppendText("The maximum Error was Consumed by System Call: \t")
+	
+		commands.getstatusoutput("python cper_error.py")
+		name = 'pererror_tab'
+
+		self.vboxPerErr.Add(self.tcPerErr, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxPerErr.Add((-1, 10))
+
+		self.panelPerErr.SetSizer(self.vboxPerErr)
+				
+		self.framePerErr.Show()
+
+		# Count of all System Calls
+
+	def OnCnt(self, e):        
+		if not self.frameCnt:
+			self.frameCnt = wx.Frame(self, -1, 'Time Consumption of All System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.fitem3 = self.fileMenu.Append(ID_FILE_COMP, 'Comparative', 'Comparative Study of Syscalls')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.Bind(wx.EVT_MENU, self.OnCompa, self.fitem3)
+		self.frameCnt.SetMenuBar(self.menubar)
+
+		self.panelCnt = wx.Panel(self.frameCnt)
+
+		self.vboxCnt = wx.BoxSizer(wx.VERTICAL)
+	
+		self.imgCnt = wx.EmptyImage(800,400)
+		self.imgCntCtrl = wx.StaticBitmap(self.panelCnt, wx.ID_ANY, wx.BitmapFromImage(self.imgCnt))
+
+		filepath = "Graphs/pie.png"
+		self.imgCnt = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgCntCtrl.SetBitmap(wx.BitmapFromImage(self.imgCnt))
+
+		self.vboxCnt.Add(self.imgCntCtrl, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+
+		self.vboxCnt.Add((-1, 10))
+
+		self.tcCnt = wx.TextCtrl(self.panelCnt, wx.ID_ANY, size=(400,50), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL | wx.VSCROLL)
+
+		self.tcCnt.AppendText("The System Call which got called maximum times is: \t")
+	
+		commands.getstatusoutput("python ccount.py")
+		name = 'count_tab'
+
+		self.vboxCnt.Add(self.tcCnt, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+
+		self.vboxCnt.Add((-1, 10))
+
+		self.panelCnt.SetSizer(self.vboxCnt)
+				
+		self.frameCnt.Show()
+
+	# System Call Trace Output
+
+	def OnSysTrace(self, e):        
+		if not self.frameSysTrace:
+			self.frameSysTrace = wx.Frame(self, -1, 'System Call Trace Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameSysTrace.SetMenuBar(self.menubar)
+
+		self.vboxSysTrace = wx.BoxSizer(wx.VERTICAL)
+		self.panelSysTrace = wx.Panel(self.frameSysTrace)
+
+		name = 'sysdisp'
+		self.frameSysTrace = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameSysTrace.Show()
+
+	# Signals Trace Output
+
+	def OnSigTrace(self, e):        
+		if not self.frameSigTrace:
+			self.frameSigTrace = wx.Frame(self, -1, 'Signals Trace Output', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'Sigtem Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'Sigtem Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameSigTrace.SetMenuBar(self.menubar)
+
+		self.vboxSigTrace = wx.BoxSizer(wx.VERTICAL)
+		self.panelSigTrace = wx.Panel(self.frameSigTrace)
+
+		name = 'sysdisp'
+		self.frameSigTrace = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameSigTrace.Show()
+
+	# Unfinished  System Calls
+
+	def OnUnfini(self, e):        
+		if not self.frameUnfini:
+			self.frameUnfini = wx.Frame(self, -1, 'Unfinished System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameUnfini.SetMenuBar(self.menubar)
+
+		name = 'unfinished'
+		self.frameUnfini = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameUnfini.Show()
+
+	# Resumed System Calls
+
+	def OnResumed(self, e):        
+		if not self.frameResumed:
+			self.frameResumed = wx.Frame(self, -1, 'Resumed System Calls', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameResumed.SetMenuBar(self.menubar)
+
+		name = 'resumed'
+		self.frameResumed = TestFrame(self,name)
+		while len(column) > 0 : column.pop()
+		self.frameResumed.Show()
+
+	#Click on refer button1 : \n and \t
+
+	def OnRefer1(self, e):        
+		if not self.frameRefer1:
+			self.frameRefer1 = wx.Frame(self, -1, 'Code Optimization : Escape Charactors', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameRefer1.SetMenuBar(self.menubar)
+
+		self.panelRefer1 = wx.Panel(self.frameRefer1)
+
+		self.hboxRefer = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxRefer1 = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxRefer13 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer13 = wx.StaticText(self.panelRefer1, label='Using \ n')
+		self.stRefer13.SetFont(self.font)
+		self.hboxRefer13.Add(self.stRefer13, flag=wx.CENTER, border=50)
+		self.vboxRefer1.Add(self.hboxRefer13, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.hboxRefer11 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer11 = wx.TextCtrl(self.panelRefer1, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer11.SetFont(self.font)
+		self.tcRefer11.AppendText('\n #include<stdio.h>')
+		self.tcRefer11.AppendText('\n void main()')
+		self.tcRefer11.AppendText('\n {')
+		self.tcRefer11.AppendText('\n\t printf("\ n hiii1");')
+		self.tcRefer11.AppendText('\n\t printf("\ n hiii2");')
+		self.tcRefer11.AppendText('\n\t printf("\ n hiii3");')
+		self.tcRefer11.AppendText('\n\t printf("\ n hiii4");')
+		self.tcRefer11.AppendText('\n\t printf("\ n hiii5");')
+		self.tcRefer11.AppendText('\n }')
+		self.hboxRefer11.Add(self.tcRefer11, flag=wx.CENTER, border=20)
+		self.vboxRefer1.Add(self.hboxRefer11, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+		self.vboxRefer1.Add((-1, 10))
+
+		self.hboxRefer12 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer1 = wx.EmptyImage(500,300)
+		self.imgReferCtrl1 = wx.StaticBitmap(self.panelRefer1, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer1))
+		filepath = "Codeop/newline.png"
+		self.imgRefer1 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl1.SetBitmap(wx.BitmapFromImage(self.imgRefer1))
+		self.hboxRefer12.Add(self.imgReferCtrl1, flag=wx.CENTER, border=20)
+		self.vboxRefer1.Add(self.hboxRefer12, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+		self.vboxRefer1.Add((-1, 10))
+
+		self.hboxRefer.Add(self.vboxRefer1, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer3 = wx.BoxSizer(wx.VERTICAL)
+		self.stRefer3 = wx.StaticText(self.panelRefer1, label='\t\t\t\t')
+		self.stRefer3.SetFont(self.font)
+		self.vboxRefer3.Add(self.stRefer3, flag=wx.CENTER, border=50)
+		self.hboxRefer.Add(self.vboxRefer3, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer2 = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxRefer23 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer23 = wx.StaticText(self.panelRefer1, label='Without using \ n')
+		self.stRefer23.SetFont(self.font)
+		self.hboxRefer23.Add(self.stRefer23, flag=wx.CENTER, border=50)
+		self.vboxRefer2.Add(self.hboxRefer23, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.hboxRefer21 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer21 = wx.TextCtrl(self.panelRefer1, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer21.SetFont(self.font)
+		self.tcRefer21.AppendText('\n #include<stdio.h>')
+		self.tcRefer21.AppendText('\n void main()')
+		self.tcRefer21.AppendText('\n {')
+		self.tcRefer21.AppendText('\n\t printf("\ t hiii1");')
+		self.tcRefer21.AppendText('\n\t printf("\ t hiii2");')
+		self.tcRefer21.AppendText('\n\t printf("\ t hiii3");')
+		self.tcRefer21.AppendText('\n\t printf("\ t hiii4");')
+		self.tcRefer21.AppendText('\n\t printf("\ t hiii5");')
+		self.tcRefer21.AppendText('\n}')
+		self.hboxRefer21.Add(self.tcRefer21, flag=wx.CENTER , border=20)
+		self.vboxRefer2.Add(self.hboxRefer21, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+		self.vboxRefer2.Add((-1, 10))
+
+		self.hboxRefer22 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer2 = wx.EmptyImage(500,300)
+		self.imgReferCtrl2 = wx.StaticBitmap(self.panelRefer1, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer2))
+
+		filepath = "Codeop/tab.png"
+		self.imgRefer2 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl2.SetBitmap(wx.BitmapFromImage(self.imgRefer2))
+		self.hboxRefer22.Add(self.imgReferCtrl2, flag=wx.CENTER, border=20)
+		self.vboxRefer2.Add(self.hboxRefer22, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+		self.vboxRefer2.Add((-1, 10))
+		self.hboxRefer.Add(self.vboxRefer2, flag=wx.EXPAND | wx.RIGHT , border=100)
+		self.panelRefer1.SetSizer(self.hboxRefer)
+		self.frameRefer1.Show()
+
+	#Click on refer button2 : fflush(stdout)
+
+	def OnRefer2(self, e):        
+		if not self.frameRefer2:
+			self.frameRefer2 = wx.Frame(self, -1, 'Code Optimization : fflush(stdout)', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem)
+		self.frameRefer2.SetMenuBar(self.menubar)
+
+		self.panelRefer2 = wx.Panel(self.frameRefer2)
+
+		self.hboxRefer2 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxRefer21 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer211 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer211 = wx.StaticText(self.panelRefer2, label='Using fflush(stdout)')
+		self.stRefer211.SetFont(self.font)
+		self.hboxRefer211.Add(self.stRefer211, flag=wx.CENTER, border=50)
+		self.vboxRefer21.Add(self.hboxRefer211, flag=wx.EXPAND | wx.LEFT , border=100)
+		self.vboxRefer21.Add((-1, 10))
+
+		self.hboxRefer212 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer212 = wx.TextCtrl(self.panelRefer2, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer212.SetFont(self.font)
+		self.tcRefer212.AppendText('\n #include<stdio.h>')
+		self.tcRefer212.AppendText('\n void main()')
+		self.tcRefer212.AppendText('\n {')
+		self.tcRefer212.AppendText('\n\t printf(" hiii1");')
+		self.tcRefer212.AppendText('\n\t printf(" hiii2");')
+		self.tcRefer212.AppendText('\n\t fflush(stdout);')
+		self.tcRefer212.AppendText('\n\t printf(" hiii3");')
+		self.tcRefer212.AppendText('\n\t printf(" hiii4");')
+		self.tcRefer212.AppendText('\n\t printf(" hiii5");')
+		self.tcRefer212.AppendText('\n }')
+		self.hboxRefer212.Add(self.tcRefer212, flag=wx.CENTER, border=20)
+		self.vboxRefer21.Add(self.hboxRefer212, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+		self.vboxRefer21.Add((-1, 10))
+
+		self.hboxRefer213 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer213 = wx.EmptyImage(500,300)
+		self.imgReferCtrl213 = wx.StaticBitmap(self.panelRefer2, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer213))
+		filepath = "Codeop/fflushm.png"
+		self.imgRefer213 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl213.SetBitmap(wx.BitmapFromImage(self.imgRefer213))
+		self.hboxRefer213.Add(self.imgReferCtrl213, flag=wx.CENTER, border=20)
+		self.vboxRefer21.Add(self.hboxRefer213, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+		self.vboxRefer21.Add((-1, 10))
+
+		self.hboxRefer2.Add(self.vboxRefer21, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer22 = wx.BoxSizer(wx.VERTICAL)
+		self.stRefer22 = wx.StaticText(self.panelRefer2, label='\t\t\t\t')
+		self.stRefer22.SetFont(self.font)
+		self.vboxRefer22.Add(self.stRefer22, flag=wx.CENTER, border=50)
+		self.hboxRefer2.Add(self.vboxRefer22, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer23 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer231 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer231 = wx.StaticText(self.panelRefer2, label='Without Using fflush(stdout)')
+		self.stRefer231.SetFont(self.font)
+		self.hboxRefer231.Add(self.stRefer231, flag=wx.CENTER, border=50)
+		self.vboxRefer23.Add(self.hboxRefer231, flag=wx.EXPAND | wx.LEFT , border=100)
+		self.vboxRefer23.Add((-1, 10))
+
+		self.hboxRefer232 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer232 = wx.TextCtrl(self.panelRefer2, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer232.SetFont(self.font)
+		self.tcRefer232.AppendText('\n #include<stdio.h>')
+		self.tcRefer232.AppendText('\n void main()')
+		self.tcRefer232.AppendText('\n {')
+		self.tcRefer232.AppendText('\n\t printf(" hiii1");')
+		self.tcRefer232.AppendText('\n\t printf(" hiii2");')
+		self.tcRefer232.AppendText('\n\t printf(" hiii3");')
+		self.tcRefer232.AppendText('\n\t printf(" hiii4");')
+		self.tcRefer232.AppendText('\n\t printf(" hiii5");')
+		self.tcRefer232.AppendText('\n }')
+		self.hboxRefer232.Add(self.tcRefer232, flag=wx.CENTER, border=20)
+		self.vboxRefer23.Add(self.hboxRefer232, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+		self.vboxRefer23.Add((-1, 10))
+
+		self.hboxRefer233 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer233 = wx.EmptyImage(500,300)
+		self.imgReferCtrl233 = wx.StaticBitmap(self.panelRefer2, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer233))
+		filepath = "Codeop/wofflushm.png"
+		self.imgRefer233 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl233.SetBitmap(wx.BitmapFromImage(self.imgRefer233))
+		self.hboxRefer233.Add(self.imgReferCtrl233, flag=wx.CENTER, border=20)
+		self.vboxRefer23.Add(self.hboxRefer233, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+		self.vboxRefer23.Add((-1, 10))
+
+		self.hboxRefer2.Add(self.vboxRefer23, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.panelRefer2.SetSizer(self.hboxRefer2)
+		self.frameRefer2.Show()
+
+	#Click on Refer Button3 : Pass by Value & Reference
+
+	def OnRefer3(self, e):        
+		if not self.frameRefer3:
+			self.frameRefer3 = wx.Frame(self, -1, 'Code Optimization : Pass by Value & Pass by Reference', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem)
+		self.frameRefer3.SetMenuBar(self.menubar)
+
+		self.panelRefer3 = wx.Panel(self.frameRefer3)
+
+		self.hboxRefer3 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxRefer31 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer311 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer311 = wx.StaticText(self.panelRefer3, label='Using Pass By Value')
+		self.stRefer311.SetFont(self.font)
+		self.hboxRefer311.Add(self.stRefer311, flag=wx.CENTER, border=50)
+		self.vboxRefer31.Add(self.hboxRefer311, flag=wx.EXPAND | wx.LEFT , border=100)
+		self.vboxRefer31.Add((-1, 10))
+
+		self.hboxRefer312 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer312 = wx.TextCtrl(self.panelRefer3, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer312.SetFont(self.font)
+		self.tcRefer312.AppendText('\n #include<stdio.h>')
+		self.tcRefer312.AppendText('\n int add(int a, int B);')
+		self.tcRefer312.AppendText('\n void main()')
+		self.tcRefer312.AppendText('\n {')
+		self.tcRefer312.AppendText('\n\t int a=2, b=3, c;')
+		self.tcRefer312.AppendText('\n\t printf(" a = %d",a);')
+		self.tcRefer312.AppendText('\n\t printf(" b = %d",b);')
+		self.tcRefer312.AppendText('\n\t c = add(a,b);')
+		self.tcRefer312.AppendText('\n\t printf(" a = %d",a);')
+		self.tcRefer312.AppendText('\n\t printf(" b = %d",b);')
+		self.tcRefer312.AppendText('\n\t printf(" c = %d",c);')
+		self.tcRefer312.AppendText('\n }')
+		self.tcRefer312.AppendText('\n int add(int a,int b)')
+		self.tcRefer312.AppendText('\n {')
+		self.tcRefer312.AppendText('\n\t int c = 0;')
+		self.tcRefer312.AppendText('\n\t c = a + b;')
+		self.tcRefer312.AppendText('\n\t a = a + b;')
+		self.tcRefer312.AppendText('\n\t return c;')
+		self.tcRefer312.AppendText('\n }')
+		self.hboxRefer312.Add(self.tcRefer312, flag=wx.CENTER, border=30)
+		self.vboxRefer31.Add(self.hboxRefer312, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=30)
+		self.vboxRefer31.Add((-1, 10))
+
+		self.hboxRefer313 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer313 = wx.EmptyImage(500,300)
+		self.imgReferCtrl313 = wx.StaticBitmap(self.panelRefer3, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer313))
+		filepath = "Codeop/passvm.png"
+		self.imgRefer313 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl313.SetBitmap(wx.BitmapFromImage(self.imgRefer313))
+		self.hboxRefer313.Add(self.imgReferCtrl313, flag=wx.CENTER, border=30)
+		self.vboxRefer31.Add(self.hboxRefer313, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=30)
+		self.vboxRefer31.Add((-1, 10))
+
+		self.hboxRefer3.Add(self.vboxRefer31, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer32 = wx.BoxSizer(wx.VERTICAL)
+		self.stRefer32 = wx.StaticText(self.panelRefer3, label='\t\t\t\t')
+		self.stRefer32.SetFont(self.font)
+		self.vboxRefer32.Add(self.stRefer32, flag=wx.CENTER, border=50)
+		self.hboxRefer3.Add(self.vboxRefer32, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer33 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer331 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer331 = wx.StaticText(self.panelRefer3, label='Using Pass By Reference')
+		self.stRefer331.SetFont(self.font)
+		self.hboxRefer331.Add(self.stRefer331, flag=wx.CENTER, border=50)
+		self.vboxRefer33.Add(self.hboxRefer331, flag=wx.EXPAND | wx.CENTER , border=100)
+		self.vboxRefer33.Add((-1, 10))
+
+		self.hboxRefer332 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer332 = wx.TextCtrl(self.panelRefer3, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer332.SetFont(self.font)
+		self.tcRefer332.AppendText('\n #include<stdio.h>')
+		self.tcRefer332.AppendText('\n int add(int *a, int *b);')
+		self.tcRefer332.AppendText('\n void main()')
+		self.tcRefer332.AppendText('\n {')
+		self.tcRefer332.AppendText('\n\t int a=2, b=3, c;')
+		self.tcRefer332.AppendText('\n\t printf(" a = %d",a);')
+		self.tcRefer332.AppendText('\n\t printf(" b = %d",b);')
+		self.tcRefer332.AppendText('\n\t c = add(&a,&b);')
+		self.tcRefer332.AppendText('\n\t printf(" a = %d",a);')
+		self.tcRefer332.AppendText('\n\t printf(" b = %d",b);')
+		self.tcRefer332.AppendText('\n\t printf(" c = %d",c);')
+		self.tcRefer332.AppendText('\n }')
+		self.tcRefer332.AppendText('\n int add(int *a,int *b)')
+		self.tcRefer332.AppendText('\n {')
+		self.tcRefer332.AppendText('\n\t int c = 0;')
+		self.tcRefer332.AppendText('\n\t c = *a + *b;')
+		self.tcRefer332.AppendText('\n\t *a = *a + *b;')
+		self.tcRefer332.AppendText('\n\t return c;')
+		self.tcRefer332.AppendText('\n }')
+		self.hboxRefer332.Add(self.tcRefer332, flag=wx.CENTER, border=30)
+		self.vboxRefer33.Add(self.hboxRefer332, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=30)
+		self.vboxRefer32.Add((-1, 10))
+
+		self.hboxRefer333 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer333 = wx.EmptyImage(500,300)
+		self.imgReferCtrl333 = wx.StaticBitmap(self.panelRefer3, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer333))
+		filepath = "Codeop/passrm.png"
+		self.imgRefer333 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl333.SetBitmap(wx.BitmapFromImage(self.imgRefer333))
+		self.hboxRefer333.Add(self.imgReferCtrl333, flag=wx.CENTER, border=30)
+		self.vboxRefer33.Add(self.hboxRefer333, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=30)
+		self.vboxRefer33.Add((-1, 10))
+
+		self.hboxRefer3.Add(self.vboxRefer33, flag=wx.EXPAND | wx.RIGHT , border=100)
+
+		self.panelRefer3.SetSizer(self.hboxRefer3)
+		self.frameRefer3.Show()
+
+	#Click on Refer Button4 : File Operation
+
+	def OnRefer4(self, e):        
+		if not self.frameRefer4:
+			self.frameRefer4 = wx.Frame(self, -1, 'Code Optimization : File Operation', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem)
+		self.frameRefer4.SetMenuBar(self.menubar)
+
+		self.panelRefer4 = wx.Panel(self.frameRefer4)
+
+		self.hboxRefer4 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxRefer41 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer411 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer411 = wx.StaticText(self.panelRefer4, label='File Operation (Using String)')
+		self.stRefer411.SetFont(self.font)
+		self.hboxRefer411.Add(self.stRefer411, flag=wx.CENTER, border=50)
+		self.vboxRefer41.Add(self.hboxRefer411, flag=wx.EXPAND | wx.LEFT , border=100)
+		self.vboxRefer41.Add((-1, 10))
+
+		self.hboxRefer412 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer412 = wx.TextCtrl(self.panelRefer4, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(14)
+		self.tcRefer412.SetFont(self.font)
+		self.tcRefer412.AppendText('\n #include<stdio.h>')
+		self.tcRefer412.AppendText('\n void main()')
+		self.tcRefer412.AppendText('\n {')
+		self.tcRefer412.AppendText('\n\t FILE *fp;')
+		self.tcRefer412.AppendText('\n\t char s[80];')
+		self.tcRefer412.AppendText('\n\t fp = fopen("input.txt","r");')
+		self.tcRefer412.AppendText('\n\t if(fp == NULL)')
+		self.tcRefer412.AppendText('\n\t {')
+		self.tcRefer412.AppendText('\n\t\t puts("Cannot Open File...");')
+		self.tcRefer412.AppendText('\n\t }')
+		self.tcRefer412.AppendText('\n\t while(fgets(s,79,fp)!= NULL)')
+		self.tcRefer412.AppendText('\n\t {')
+		self.tcRefer412.AppendText('\n\t\t printf("%s",s);')
+		self.tcRefer412.AppendText('\n\t }')
+		self.tcRefer412.AppendText('\n\t fclose(fp);')
+		self.tcRefer412.AppendText('\n }')
+		self.hboxRefer412.Add(self.tcRefer412, flag=wx.CENTER, border=40)
+		self.vboxRefer41.Add(self.hboxRefer412, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=40)
+		self.vboxRefer41.Add((-1, 10))
+
+		self.hboxRefer413 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer413 = wx.EmptyImage(500,300)
+		self.imgReferCtrl413 = wx.StaticBitmap(self.panelRefer4, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer413))
+		filepath = "Codeop/filecharam.png"
+		self.imgRefer413 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl413.SetBitmap(wx.BitmapFromImage(self.imgRefer413))
+		self.hboxRefer413.Add(self.imgReferCtrl413, flag=wx.CENTER, border=40)
+		self.vboxRefer41.Add(self.hboxRefer413, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=40)
+		self.vboxRefer41.Add((-1, 10))
+
+		self.hboxRefer4.Add(self.vboxRefer41, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer42 = wx.BoxSizer(wx.VERTICAL)
+		self.stRefer42 = wx.StaticText(self.panelRefer4, label='\t\t\t\t')
+		self.stRefer42.SetFont(self.font)
+		self.vboxRefer42.Add(self.stRefer42, flag=wx.CENTER, border=50)
+		self.hboxRefer4.Add(self.vboxRefer42, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer43 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer431 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer431 = wx.StaticText(self.panelRefer4, label='File Operations Using Charactor')
+		self.stRefer431.SetFont(self.font)
+		self.hboxRefer431.Add(self.stRefer431, flag=wx.CENTER, border=50)
+		self.vboxRefer43.Add(self.hboxRefer431, flag=wx.EXPAND | wx.CENTER , border=100)
+		self.vboxRefer43.Add((-1, 10))
+
+		self.hboxRefer432 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer432 = wx.TextCtrl(self.panelRefer4, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer432.SetFont(self.font)
+
+		self.tcRefer432.AppendText('\n #include<stdio.h>')
+		self.tcRefer432.AppendText('\n void main()')
+		self.tcRefer432.AppendText('\n {')
+		self.tcRefer432.AppendText('\n\t FILE *fp;')
+		self.tcRefer432.AppendText('\n\t char ch;')
+		self.tcRefer432.AppendText('\n\t fp = fopen("input.txt","r");')
+		self.tcRefer432.AppendText('\n\t while(1)')
+		self.tcRefer432.AppendText('\n\t {')
+		self.tcRefer432.AppendText('\n\t\t ch = fgetc(ch);')
+		self.tcRefer432.AppendText('\n\t\t if(ch == EOF)')
+		self.tcRefer432.AppendText('\n\t\t break;')
+		self.tcRefer432.AppendText('\n\t\t printf("%c"),ch')
+		self.tcRefer432.AppendText('\n\t }')
+		self.tcRefer432.AppendText('\n\t fclose(fp);')
+		self.tcRefer432.AppendText('\n }')
+		self.hboxRefer432.Add(self.tcRefer432, flag=wx.CENTER, border=40)
+		self.vboxRefer43.Add(self.hboxRefer432, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=40)
+		self.vboxRefer43.Add((-1, 10))
+
+		self.hboxRefer433 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer433 = wx.EmptyImage(500,300)
+		self.imgReferCtrl433 = wx.StaticBitmap(self.panelRefer4, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer433))
+		filepath = "Codeop/filestringm.png"
+		self.imgRefer433 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl433.SetBitmap(wx.BitmapFromImage(self.imgRefer433))
+		self.hboxRefer433.Add(self.imgReferCtrl433, flag=wx.CENTER, border=40)
+		self.vboxRefer43.Add(self.hboxRefer433, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=40)
+		self.vboxRefer43.Add((-1, 10))
+
+		self.hboxRefer4.Add(self.vboxRefer43, flag=wx.EXPAND | wx.RIGHT , border=100)
+
+		self.panelRefer4.SetSizer(self.hboxRefer4)
+		self.frameRefer4.Show()
+
+	#Click on Refer Button5 : Looping Constructions
+
+	def OnRefer5(self, e):        
+		if not self.frameRefer5:
+			self.frameRefer5 = wx.Frame(self, -1, 'Code Optimization : Looping Constructions', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem)
+		self.frameRefer5.SetMenuBar(self.menubar)
+
+		self.panelRefer5 = wx.Panel(self.frameRefer5)
+
+		self.hboxRefer5 = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.vboxRefer51 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer511 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer511 = wx.StaticText(self.panelRefer5, label='Using For Loop')
+		self.stRefer511.SetFont(self.font)
+		self.hboxRefer511.Add(self.stRefer511, flag=wx.CENTER, border=50)
+		self.vboxRefer51.Add(self.hboxRefer511, flag=wx.EXPAND | wx.LEFT , border=100)
+		self.vboxRefer51.Add((-1, 10))
+
+		self.hboxRefer512 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer512 = wx.TextCtrl(self.panelRefer5, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer512.SetFont(self.font)
+		self.tcRefer512.AppendText('\n #include<stdio.h>')
+		self.tcRefer512.AppendText('\n void main()')
+		self.tcRefer512.AppendText('\n {')
+		self.tcRefer512.AppendText('\n\t int i,j,k=1;')
+		self.tcRefer512.AppendText('\n\t for(i=1;i<=100;i++)')
+		self.tcRefer512.AppendText('\n\t {')
+		self.tcRefer512.AppendText('\n\t\t printf(" %d",k++);')
+		self.tcRefer512.AppendText('\n\t }')
+		self.tcRefer512.AppendText('\n }')
+		self.hboxRefer512.Add(self.tcRefer512, flag=wx.CENTER, border=20)
+		self.vboxRefer51.Add(self.hboxRefer512, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+		self.vboxRefer51.Add((-1, 10))
+
+		self.hboxRefer513 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer513 = wx.EmptyImage(500,300)
+		self.imgReferCtrl513 = wx.StaticBitmap(self.panelRefer5, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer513))
+		filepath = "Codeop/form.png"
+		self.imgRefer513 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl513.SetBitmap(wx.BitmapFromImage(self.imgRefer513))
+		self.hboxRefer513.Add(self.imgReferCtrl513, flag=wx.CENTER, border=20)
+		self.vboxRefer51.Add(self.hboxRefer513, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+		self.vboxRefer51.Add((-1, 10))
+
+		self.hboxRefer5.Add(self.vboxRefer51, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer52 = wx.BoxSizer(wx.VERTICAL)
+		self.stRefer52 = wx.StaticText(self.panelRefer5, label='\t\t\t\t')
+		self.stRefer52.SetFont(self.font)
+		self.vboxRefer52.Add(self.stRefer52, flag=wx.CENTER, border=50)
+		self.hboxRefer5.Add(self.vboxRefer52, flag=wx.EXPAND | wx.LEFT , border=100)
+
+		self.vboxRefer53 = wx.BoxSizer(wx.VERTICAL)
+		self.hboxRefer531 = wx.BoxSizer(wx.HORIZONTAL)
+		self.stRefer531 = wx.StaticText(self.panelRefer5, label='Using While Loop')
+		self.stRefer531.SetFont(self.font)
+		self.hboxRefer531.Add(self.stRefer531, flag=wx.CENTER, border=50)
+		self.vboxRefer53.Add(self.hboxRefer531, flag=wx.EXPAND | wx.CENTER , border=100)
+		self.vboxRefer53.Add((-1, 10))
+		self.hboxRefer532 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcRefer532 = wx.TextCtrl(self.panelRefer5, wx.ID_ANY, size=(300,250), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcRefer532.SetFont(self.font)
+		self.tcRefer532.AppendText('\n #include<stdio.h>')
+		self.tcRefer532.AppendText('\n void main()')
+		self.tcRefer532.AppendText('\n {')
+		self.tcRefer532.AppendText('\n\t while(i<=100)')
+		self.tcRefer532.AppendText('\n\t {')
+		self.tcRefer532.AppendText('\n\t\t printf(" %d",k++);')
+		self.tcRefer532.AppendText('\n\t\t i++;')
+		self.tcRefer532.AppendText('\n\t }')
+		self.tcRefer532.AppendText('\n }')
+		self.hboxRefer532.Add(self.tcRefer532, flag=wx.CENTER, border=20)
+		self.vboxRefer53.Add(self.hboxRefer532, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=20)
+		self.vboxRefer53.Add((-1, 10))
+
+		self.hboxRefer533 = wx.BoxSizer(wx.HORIZONTAL)
+		self.imgRefer533 = wx.EmptyImage(500,300)
+		self.imgReferCtrl533 = wx.StaticBitmap(self.panelRefer5, wx.ID_ANY, wx.BitmapFromImage(self.imgRefer533))
+		filepath = "Codeop/whilem.png"
+		self.imgRefer533 = wx.Image(filepath, wx.BITMAP_TYPE_ANY)
+		self.imgReferCtrl533.SetBitmap(wx.BitmapFromImage(self.imgRefer533))
+		self.hboxRefer533.Add(self.imgReferCtrl533, flag=wx.CENTER, border=20)
+		self.vboxRefer53.Add(self.hboxRefer533, flag=wx.EXPAND | wx.CENTER | wx.BOTTOM, border=20)
+		self.vboxRefer53.Add((-1, 10))
+
+		self.hboxRefer5.Add(self.vboxRefer53, flag=wx.EXPAND | wx.RIGHT , border=100)
+
+		self.panelRefer5.SetSizer(self.hboxRefer5)
+		self.frameRefer5.Show()
+
+
+	# Some More Hints of Code Optimization
+
+	def OnHints(self, e):        
+		if not self.frameHints:
+			self.frameHints = wx.Frame(self, -1, 'Some Hints For Code Optimization', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem1 = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem2 = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem1)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem2)
+		self.frameHints.SetMenuBar(self.menubar)
+
+		self.panelHints = wx.Panel(self.frameHints)
+		self.vboxHints = wx.BoxSizer(wx.VERTICAL)
+
+		self.hboxHints1 = wx.BoxSizer(wx.HORIZONTAL)
+		self.tcHints1 = wx.TextCtrl(self.panelHints, wx.ID_ANY, size=(1200,600), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(13)
+		self.tcHints1.SetFont(self.font)
+		self.tcHints1.AppendText("   1.  Minimize the use of global variables in the program.\n\n")
+		self.tcHints1.AppendText("   2.  Declare all functions other than global variables as static within the file.\n\n")
+		self.tcHints1.AppendText("   3.  Use word size variables such as int and float instead of char, short, and double.\n\n")
+		self.tcHints1.AppendText("   4.  Avoid using recursion.\n\n")
+		self.tcHints1.AppendText("   5.  Use single-dimensional arrays.\n\n")
+		self.tcHints1.AppendText("   6.  Avoid using the sqrt() function as it is CPU intensive.\n\n")
+		self.tcHints1.AppendText("   7.  Do not split closely related functions into separate files.\n\n")
+		self.tcHints1.AppendText("   8.  Use puts() function instead of the printf function.\n\n")
+		self.tcHints1.AppendText("   9.  Use unformatted/binary file access instead of formatted file access.\n\n")
+		self.tcHints1.AppendText("   10. Use mallopt() if the compiler supports this function to control malloc function.\n\n")
+		self.tcHints1.AppendText("   11. Use inline functions instead of small functions to save CPU time.\n\n")
+
+		self.hboxHints1.Add(self.tcHints1, flag=wx.LEFT, border=50)
+		self.vboxHints.Add(self.hboxHints1, flag=wx.EXPAND | wx.CENTER | wx.TOP, border=50)
+		self.vboxHints.Add((-1, 10))
+
+		self.panelHints.SetSizer(self.vboxHints)		        
+		self.frameHints.Show()
+
+	# Test Your Program
+	def OnTest(self, e):        
+		if not self.frameTest:
+			self.frameTest = wx.Frame(self, -1, 'Code Optimization : Tet your Program', pos = (25,25), size = (1300,700), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+		self.menubar = wx.MenuBar()
+		self.fileMenu = wx.Menu()
+		self.fitem = self.fileMenu.Append(ID_FILE_OPEN, 'Quit', 'Quit application')
+		self.fitem = self.fileMenu.Append(ID_FILE_INPUT, 'Main', 'System Call Analyzer')
+		self.fitem = self.fileMenu.Append(ID_FILE_HOME, 'Home', 'System Call Analyzer Output')
+		self.menubar.Append(self.fileMenu, '&File')
+		self.Bind(wx.EVT_MENU, self.OnQuit, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnInput, self.fitem)
+		self.Bind(wx.EVT_MENU, self.OnHome, self.fitem)
+		self.frameTest.SetMenuBar(self.menubar)
+
+		self.panelTest = wx.Panel(self.frameTest)
+
+		self.hboxTest = wx.BoxSizer(wx.HORIZONTAL)
+
+		self.tcTest = wx.TextCtrl(self.panelTest, wx.ID_ANY, size=(700,150), style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL)
+		self.font.SetPointSize(14)
+		self.tcTest.SetFont(self.font)
+		ProgName = self.tc12.GetValue()
+
+		if ProgName != '':
+			self.tcTest.AppendText(ProgName)
+			self.hboxTest.Add(self.tcTest, flag=wx.LEFT | wx.RIGHT, border=20)
+			self.panelTest.SetSizer(self.hboxTest)
+			self.frameTest.Show()
+
+		else:
+			self.frameProgName = wx.Frame(self, -1, 'Program Name', pos = (300,300), size = (500,200), style = wx.RESIZE_BORDER | wx.CLOSE_BOX)
+			self.panelProgName = wx.Panel(self.frameProgName)
+			self.vboxProgName = wx.BoxSizer(wx.VERTICAL)
+
+			self.stp = wx.StaticText(self.panelProgName, label='You havent entered Program Name in the \n Main Screen... Please Enter it here...')
+			self.stp.SetFont(self.font)
+			self.vboxProgName.Add(self.stp, flag=wx.CENTER | wx.TOP, border=15)
+			self.vboxProgName.Add((-1, 10))
+
+			self.tcp = wx.TextCtrl(self.panelProgName)
+			self.vboxProgName.Add(self.tcp, flag=wx.EXPAND | wx.LEFT | wx.RIGHT , border=100)
+			self.vboxProgName.Add((-1, 10))
+
+			self.btn = wx.Button(self.panelProgName, label='DONE', size=(150, 50))
+			self.btn.Bind(wx.EVT_BUTTON, self.OnDone)
+			self.vboxProgName.Add(self.btn, flag=wx.ALIGN_CENTER | wx.BOTTOM, border=15)
+			self.vboxProgName.Add((-1, 10))
+
+			self.panelProgName.SetSizer(self.vboxProgName)
+			self.frameProgName.Show()
+
+
+	def OnDone(self, e):
+
+		ProgName = self.tcp.GetValue()        
+		self.tcTest.AppendText(ProgName)
+		self.hboxTest.Add(self.tcTest, flag=wx.LEFT | wx.RIGHT, border=20)
+		self.panelTest.SetSizer(self.hboxTest)
+		self.frameTest.Show()
+'''
+# Function For Drawing Graphs
+
+	def persyscallstat(self, name):
+		fig = p.figure()
+		conn = sqlite3.connect('sparse.db')
+
+		curs = conn.cursor()
+		cnt = 0
+		bytes = 0
+		y=[]
+		group_labels=[]
+		i=0
+
+		with conn:
+			curs.execute("select * from %s;" % (name))
+			rows=curs.fetchall()
+			for row in rows:
+				i=i+1
+				section = i
+				new_section = "Call_%s" % section
+				y.append(float(row[1]))
+				#group_labels.append(str(row[0]))
+				group_labels.append(new_section)
+			#print y
+			N = len(y)
+			ind = range(N)
+			ax = fig.add_subplot(1,1,1)
+			ax.bar(ind, y, facecolor='cyan',align='center',ecolor='cyan')
+
+			if(name == 'read_tab'):
+			#Create a y label
+				ax.set_ylabel('No of Byte Read')
+			# Create a title, in italics
+				ax.set_title('Analysis of No.of Byte Read by Each Read SystemCall',fontstyle='italic')
+			elif(name == 'write_tab'):
+			#Create a y label
+				ax.set_ylabel('No of Byte Write')
+			# Create a title, in italics
+				ax.set_title('Analysis of No.of Byte Write by Each Read SystemCall',fontstyle='italic')
+
+			ax.set_xticks(ind)
+			ax.set_xticklabels(group_labels)
+			fig.autofmt_xdate()
+			
+			#if(name == 'read_tab'):
+			 #   p.savefig('Graphs/readgrapg.png')
+			#else:
+			 #   p.savefig('Graphs/writegraph.png')
+			
+			p.savefig('Graphs/readgrapg.png')
+			#p.show()
+
+
+			# class for grid table
+'''
+class SimpleGrid(wx.grid.Grid):
+	def __init__(self, parent,name):
+		row_no = 0
+		col_no = 0
+		col1 = 0
+		col2 = 0
+		row1 = 0 
+		row2 = 1
+		wx.grid.Grid.__init__(self, parent, -1)
+		conn = sqlite3.connect('sparse.db')
+
+		curs = conn.cursor()
+		with conn:
+			curs.execute("SELECT COUNT(*) FROM %s" % (name))
+			rows = curs.fetchall()
+
+			for row in rows:
+				row_no = row[0]
+
+		curs.execute("pragma table_info(%s);" % (name))
+		rows = curs.fetchall()
+
+		for row in rows:
+		        col_no = col_no + 1
+		        column.append(row[1])
+
+		self.CreateGrid(row_no, col_no)
+		'''
+		if row_no == 0:
+			row_str = "No Entries In This Table "
+			self.SetRowLabelValue(row1, row_str)
+		else:
+		'''	
+		for col in column:
+			self.SetColLabelValue(col1, col)
+			col1 = col1 + 1
+
+		curs.execute("SELECT * FROM %s" % (name))
+		rows = curs.fetchall()
+
+		for row in rows:
+			row_str = str(row2)
+			self.SetRowLabelValue(row1, row_str)
+
+			i=0
+			while i < col_no:
+				self.SetColSize(i,200)
+				i+=1
+
+			while col2<col_no:
+				row_value_str = str(row[col2])
+				self.SetCellValue(row1, col2, row_value_str)
+				self.SetReadOnly(row1,col2,1)
+				col2 = col2 + 1
+			row1 = row1 + 1
+			col2 = 0
+			row2 = row2 + 1
+
+class TestFrame(wx.Frame):
+	def __init__(self, parent,name):
+		if name == 'sysdisp':
+			string = 'System Call Trace '
+		elif name == 'errors_tab':
+			string = 'Error Analysis '
+		elif name == 'fileio_tab':
+			string = 'File Input/Output Analysis '
+		elif name == 'summary_tab':
+			string = 'Summary '
+		elif name == 'access_tab':
+			string = 'Particular System Call Statistics - ACCESS'
+		elif name == 'pipe_tab':
+			string = 'Particular System Call Statistics - PIPE'
+		elif name == 'fstat_tab':
+			string = 'Particular System Call Statistics - FSTAT'
+		elif name == 'stat_tab':
+			string = 'Particular System Call Statistics - STAT'
+		elif name == 'lstat_tab':
+			string = 'Particular System Call Statistics - LSTAT'
+		elif name == 'mmap_tab':
+			string = 'Particular System Call Statistics - MMAP'
+		elif name == 'mprotect_tab':
+			string = 'Particular System Call Statistics - MPROTECT'
+		elif name == 'rt_sigaction_tab':
+			string = 'Particular System Call Statistics - RT_SIGACTION'
+		elif name == 'munmap_tab':
+			string = 'Particular System Call Statistics - Munmap'
+		elif name == 'uname_tab':
+			string = 'Particular System Call Statistics - Uname'
+		elif name == 'unfinished':
+			string = 'Unfinished System Calls'
+		elif name == 'resumed':
+			string = 'Resumed System Call'
+
+		wx.Frame.__init__(self, parent, title = string, pos = (25,25), size = (1300,700))
+		grid = SimpleGrid(self,name)
+
+def main():
+
+	ex = wx.App()
+	main = Example(None)
+	ex.MainLoop()    
+
+if __name__ == '__main__':
+	main()

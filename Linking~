@@ -1,0 +1,41 @@
+******* run read program on pid input file****************
+
+
+* System Call Analyzer Frame -> START CLICK -> Wrong Password -> FRAMEERR
+					    -> Right Password -> FRAME1 (System Call Analyzer)
+  			     -> QUIT CLICK  -> End of project 
+
+
+* FRAME1 -> SUBMIT CLICK -> vi -> FRAMEERR
+	 	       	 -> firefox -> FRAMEFIRE -> CANCLE CLICK -> FRAME1 (System Call Analyzer)
+	 	       	 			 -> OK CLICK     -> python fireclose.py -> python parse3.py -> FRAMEDISP (System Call Analyzer Op)
+	 	       	 -> list1   -> FRAMEERR
+	 	       	 -> else    -> python parse3.py -> FRAMEDISP (System Call Analyzer Output)
+
+
+* FRAMEDISP -> PERTICULAR SYSTEM CALL STATISTICS CLICK  -> FRAMEPERT (Statistics of Special System Calls)
+	    -> COMPARATIVE SYSTEM CALL STATISTICS CLICK -> FRAMECOMP (Comparative Statistics of All System Calls)
+	    -> SYSTEM CALL TRACE CLICK                  -> FRAMEOP (System Call Trace Output)                     -> sysdisp
+	    -> RESUMED-UNINISHED SYSTEM CALL CLICK      -> FRAMEUNFIN (Unfinished And Resumed Calls Statistics)   -> unfinished, resumed
+	    -> PROCESS TREE CLICK                       -> FRAMEPROC (Process Tree)                               -> python proctree.py
+	    -> CODE OPTIMIZATION CLICK                  -> FRAMECODE (Code Optimization)                          -> python codeopt.py
+
+
+* FRAMEPERT -> READ CLICK          -> FRAMEREAD (Read Syatem Call Statistics)                 -> python pread.py         -> read_tab
+	    -> WRITE CLICK         -> FRAMEWRITE (Write Syatem Call Statistics)               -> python pwrite.py        -> write_tab
+	    -> ACCESS CLICK        -> FRAMEACCESS (Access Syatem Call Statistics)             -> python paccess.py       -> access_tab
+	    -> FSTAT/FSTAT64 CLICK -> FRAMEFSTAT (Fstat/Fstat64 Syatem Call Statistics)       -> python pfstat.py        -> fstat_tab
+	    -> STAT/STAT64 CLICK   -> FRAMESTAT (Stat/Stat64 Syatem Call Statistics)          -> python pstat.py         -> stat_tab
+	    -> LSTAT/LSTAT64 CLICK -> FRAMELSTAT (Lstat/Lstat64 Syatem Call Statistics)       -> python plstat.py        -> lstat_tab
+	    -> MMAP CLICK          -> FRAMMAP (Mmap Syatem Call Statistics)                   -> python pmmap.py         -> mmap_tab
+	    -> MPROTECT CLICK      -> FRAMMROTECT (Mprotect Syatem Call Statistics)           -> python pmprotect.py     -> mprotect_tab
+	    -> RT_SIGACTION CLICK  -> FRAMERE_SIGACTION (Rt_sigaction Syatem Call Statistics) -> python prt_sigaction.py -> rt_sigaction_tab
+	    -> FORK CLICK          -> FRAMEFORK (Fork Syatem Call Statistics)                 -> python pfork.py         -> fork_tab
+
+
+* FRAMECOMP -> TIME CONSUMPTION CLICK              -> FRAMETIME (Time Consumption of All System Calls)               -> python ctime.py -> time_tab
+	    -> PERCENTAGE TIME CONSUMPTION CLICK   -> FRAMETERTIME (Percentage Time Consumption of All System Calls) -> python cper_time.py -> pertime_tab
+	    -> SYSCALL ERRORS CLICK                -> FRAMEERR (Errors in All System Calls)                          -> python cerror.py -> error_tab
+	    -> PERCENTAGE ERRORS IN SYSCALLS CLICK -> FRAMEPERERR (Percentage Errors in All System Calls)            -> python cper_error.py -> pererror_tab
+	    -> SYSTEM CALL COUNT CLICK             -> FRAMECNT (Count of All System Calls)                           -> python ccount.py -> count_tab
+

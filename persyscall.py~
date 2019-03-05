@@ -1,0 +1,54 @@
+import sys
+import sqlite3
+import pylab as p
+
+
+def persyscallstat(name):
+	fig = p.figure()
+	conn = sqlite3.connect('sparse.db')
+
+	curs = conn.cursor()
+	cnt = 0
+	bytes = 0
+	y=[]
+	group_labels=[]
+	i=0
+
+	with conn:
+	    curs.execute("select * from %s;" % (name))
+	    rows=curs.fetchall()
+	    for row in rows:
+		
+		i=i+1
+		section = i
+		new_section = "Call_%s" % section
+		y.append(float(row[1]))
+		#group_labels.append(str(row[0]))
+		group_labels.append(new_section)
+	    print y
+	
+	    N = len(y)
+	    ind = range(N)
+	    ax = fig.add_subplot(1,1,1)
+	    ax.bar(ind, y, facecolor='cyan',align='center',ecolor='cyan')
+	    
+	    if(name == 'read_tab'):
+		#Create a y label
+	    	ax.set_ylabel('No of Byte Read')
+	 	# Create a title, in italics
+	    	ax.set_title('Analysis of No.of Byte Read by Each Read SystemCall',fontstyle='italic')
+	    elif(name == 'write_tab'):
+		#Create a y label
+	    	ax.set_ylabel('No of Byte Write')
+	 	# Create a title, in italics
+	    	ax.set_title('Analysis of No.of Byte Write by Each Read SystemCall',fontstyle='italic')
+	   
+	    ax.set_xticks(ind)
+	    ax.set_xticklabels(group_labels)
+	    fig.autofmt_xdate()
+	    p.savefig('Graphs/readgraph.png')
+	    #p.show()
+
+#Function Call
+
+persyscallstat('read_tab')
